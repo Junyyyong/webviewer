@@ -83,6 +83,27 @@
 
     #scan-help { display:none; position:fixed; left:20px; right:20px; bottom:30px; z-index:10; text-align:center; color:white; background:#0009; padding:12px; border-radius:12px; pointer-events:none; font-size:14px; }
     body.started:not(.tracking):not(.pinned) #scan-help { display:block; }
+    [hidden] {display:none!important;}
+    #library-btn {top:calc(12px + env(safe-area-inset-top));left:12px;padding:12px 15px;display:block;}
+    body.pinned #library-btn {display:none;}
+    #splash .secondary {background:transparent;color:white;border:1px solid #777;padding:12px 24px;}
+    #selected-label {color:#b6d8ff;font-size:14px;max-width:85vw;}
+    #camera-controls {display:none;position:fixed;right:12px;top:calc(66px + env(safe-area-inset-top));z-index:25;color:#fff;background:#000a;border-radius:16px;padding:10px;max-width:180px;}
+    body.started:not(.pinned) #camera-controls:not([hidden]) {display:block;}
+    #camera-controls button {padding:9px;border:1px solid #aaa;border-radius:10px;color:white;background:transparent;}
+    #zoom-control {display:block;font-size:13px;margin-top:8px;}
+    #zoom {width:135px;display:block;}
+    #camera-note {font-size:12px;max-width:150px;}
+    dialog {border:0;border-radius:18px;width:min(640px,calc(100vw - 48px));max-height:80dvh;padding:20px;color:#111;box-shadow:0 12px 50px #0008;}
+    dialog::backdrop {background:#000b;}
+    .library-top {display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    dialog button {border:1px solid #bbb;border-radius:10px;padding:10px;background:#f3f5f7;cursor:pointer;font-size:14px;}
+    #figure-search {box-sizing:border-box;width:100%;padding:13px;border:1px solid #aaa;border-radius:10px;font-size:16px;}
+    .figure-row {display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid #ddd;}
+    .figure-row strong {font-size:14px;overflow-wrap:anywhere;}
+    #library-player video {width:100%;max-height:42dvh;background:#000;}
+    #library-player audio {width:100%;}
+    @media(max-width:440px){.figure-row{grid-template-columns:1fr 1fr}.figure-row strong{grid-column:1/-1}}
     .a-enter-vr, .a-enter-ar { display: none !important; }
   </style>
 </head>
@@ -96,9 +117,24 @@
 
   <div id="splash">
     <div class="hint" id="splash-hint">불러오는 중…</div>
+    <p id="selected-label"></p>
     <button id="start-btn" style="display:none">카메라 시작</button>
+    <button class="secondary" data-open-library>도표 찾기 · 카메라 없이 보기</button>
   </div>
 
+  <button id="library-btn" class="ctl" data-open-library>도표 찾기</button>
+  <div id="camera-controls" hidden>
+    <button id="torch" hidden aria-pressed="false">조명 켜기</button>
+    <label id="zoom-control" hidden>배율 <output id="zoom-label">1×</output><input id="zoom" type="range" min="1" max="2.5" step="0.1" value="1" /></label>
+    <p id="camera-note" role="status"></p>
+  </div>
+  <dialog id="figure-library" aria-labelledby="library-title">
+    <div class="library-top"><h2 id="library-title">도표 찾기</h2><button id="library-close" aria-label="도표 목록 닫기">닫기</button></div>
+    <p>원하는 도표만 인식하거나 카메라 없이 영상·음원을 바로 재생하세요.</p>
+    <button id="scan-all">전체 도표 자동 인식</button>
+    <label for="figure-search">도표 이름·목록 번호 검색</label><input id="figure-search" type="search" placeholder="도표 이름 또는 목록 번호" />
+    <div id="library-player"></div><p id="library-status" role="status"></p><div id="figure-list"></div>
+  </dialog>
   <div id="scene-root"></div>
   <div id="scan-help">밝고 반사가 적은 곳에서 도표 전체를 화면에 담아 주세요. 작게 보이면 조금 가까이 대고 잠시 고정해 주세요.</div>
   <div id="media-status" role="status" style="position:fixed;bottom:100px;left:16px;right:16px;text-align:center;color:white;background:#000b;border-radius:12px;padding:12px;z-index:30;display:none;pointer-events:none"></div>
@@ -138,12 +174,12 @@
           document.getElementById("pin-btn").textContent =
             v.tagName === "AUDIO" ? "계속 듣기" : "계속 보기";
           // '계속 보기'로 띄운 영상은 카메라가 흔들려도 AR이 건드리지 않는다
-          if (v === window.ARState.pinned) return;
+          if (v === window.ARState.pinned || window.ARState.manual) return;
           const status = document.getElementById('media-status');
           try {
             status.textContent = '영상·음원을 불러오는 중…'; status.style.display = '';
             await window.ARState.mediaLoader.ensure(v);
-            if (!v.dataset.onTarget && v !== window.ARState.pinned) return;
+            if (window.ARState.manual || !v.dataset.onTarget && v !== window.ARState.pinned) return;
             status.style.display = 'none';
             v.muted = !window.ARState.soundOn;
             v.play().catch(() => { v.muted = true; v.play().catch(() => { status.textContent = '화면을 터치하면 재생됩니다.'; status.style.display = ''; }); });
@@ -153,7 +189,7 @@
           const v = this.data.video;
           delete v.dataset.onTarget;
           document.body.classList.remove("tracking");
-          if (v === window.ARState.pinned) return;
+          if (v === window.ARState.pinned || window.ARState.manual) return;
           v.pause();
           if (!window.ARState.pinned) document.getElementById("media-status").style.display="none";
         });
@@ -171,6 +207,8 @@
     };
     const escAttr = (s) => String(s).replace(/"/g, "&quot;");
 
+    import { installCameraAssist, selectedTarget, applyZoom, cameraErrorMessage } from './camera-assist.js';
+    import { mountLibrary } from './viewer-library.js';
     import { createMediaLoader } from './media-loader.js';
     import { readManifest, assetUrl, loadMindUrl } from './content-store.js';
     let manifest;
@@ -182,9 +220,22 @@
       showMessage("아직 등록된 도판이 없습니다. 관리자 페이지에서 이미지를 추가한 뒤 ‘발행’해 주세요.");
       throw new Error("등록된 타깃 없음");
     }
-    let mindUrl;
-    try { mindUrl = await loadMindUrl(manifest); }
-    catch(e) { showMessage(e.message); throw e; }
+    installCameraAssist(AFRAME);
+    const S = window.ARState;
+    S.mediaLoader = createMediaLoader({isProtected: media => !!media.dataset.onTarget || S.pinned === media || S.manualMedia === media});
+    window.addEventListener('pagehide', () => S.mediaLoader.clear());
+    let selected = new URL(location.href).searchParams.get('figure');
+    const selectFigure = row => {
+      const url = new URL(location.href); if(row)url.searchParams.set('figure',row.id);else url.searchParams.delete('figure');
+      if (document.body.classList.contains('started')) { location.assign(url.href); return; }
+      selected = row?.id || null; history.replaceState(null,'',url); showSelected();
+    };
+    function showSelected() {
+      const row = rows.find(row=>row.id===selected);
+      $("#selected-label").textContent = row ? `선택한 도표만 인식: ${row.name || '도표 '+(rows.indexOf(row)+1)}` : '전체 도표 자동 인식';
+    }
+    showSelected();
+    mountLibrary({rows,assetUrl:publicUrl,loader:S.mediaLoader,state:S,onSelect:selectFigure});
 
     // 재생 파일이 음악인지 영상인지는 확장자로 판별한다 (DB 변경 불필요)
     const isAudio = (path) => /\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|weba)$/i.test(path);
@@ -221,8 +272,8 @@
       </a-entity>`;
     }).join("\n      ");
 
-    const sceneHTML = `
-    <a-scene mindar-image="imageTargetSrc: ${escAttr(mindUrl)}; autoStart: true; uiLoading: no; uiError: no; uiScanning: no; warmupTolerance: 2; missTolerance: 12"
+    const sceneHTML = mindUrl => `
+    <a-scene mindar-image="imageTargetSrc: ${escAttr(mindUrl)}; autoStart: true; maxTrack: 1; uiLoading: no; uiError: no; uiScanning: no; warmupTolerance: 2; missTolerance: 12"
              color-space="sRGB" renderer="colorManagement: true" embedded
              vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       <a-assets timeout="1">
@@ -232,15 +283,11 @@
       ${entities}
     </a-scene>`;
 
-    const S = window.ARState;
-    S.mediaLoader = createMediaLoader({isProtected: media => !!media.dataset.onTarget || S.pinned === media});
-    window.addEventListener('pagehide', () => S.mediaLoader.clear());
-
     // ── 소리: 상태를 한 곳에서 관리한다.
     // (자동 해제가 사용자의 선택을 덮어쓰지 않도록 항상 이 상태를 따른다)
     const setSound = (on) => {
       S.soundOn = on;
-      for (const v of document.querySelectorAll("video")) v.muted = !on;
+      for (const v of document.querySelectorAll("a-assets video, a-assets audio, #pinned video, #pinned audio")) v.muted = !on;
       $("#sound-btn").textContent = on ? "🔊" : "🔇";
     };
     $("#sound-btn").addEventListener("click", () => setSound(!S.soundOn));
@@ -250,6 +297,7 @@
     // 그 수만큼 영상을 동시에 받아버려 폰이 멈춘다.
     // 그래서 '지금 인식 중인' 영상 하나만 소리를 켠다.
     const unlock = () => {
+      if (S.manual) return;
       const v = document.querySelector("a-assets [data-on-target]");
       if (v && S.soundOn && v.muted) {
         v.muted = false;
@@ -290,22 +338,47 @@
       if (v.dataset.onTarget) v.play().catch(() => {}); else v.pause();
     });
 
-    const startAR = () => {
-      $("#splash").style.display = "none";
-      $("#scene-root").innerHTML = sceneHTML;
-      document.body.classList.add("started");
-      setSound(true);
-      document.addEventListener("pointerdown", unlock);
-      $("#scene-root").querySelector("a-scene").addEventListener("arError", () => {
-        showMessage("카메라를 켤 수 없습니다. 브라우저의 카메라 권한을 허용한 뒤 새로고침해 주세요.");
-      });
+    const startAR = async () => {
+      const button = $("#start-btn"); button.disabled = true;
+      $("#splash-hint").textContent = '도표 인식 데이터를 준비하는 중… 처음에는 잠시 걸릴 수 있습니다.';
+      try {
+        const mindUrl = await loadMindUrl(manifest);
+        $("#scene-root").innerHTML = sceneHTML(mindUrl);
+        const scene = $("#scene-root a-scene");
+        scene.addEventListener('arCameraReady', e => {
+          const track=e.detail.track,caps=track.getCapabilities?.()||{};
+          if(caps.zoom && caps.zoom.max>caps.zoom.min) {
+            $("#camera-controls").hidden=false;$("#zoom-control").hidden=false;
+            const input=$("#zoom");input.min=caps.zoom.min;input.max=Math.min(2.5,caps.zoom.max);input.step=caps.zoom.step||0.1;
+            input.value=track.getSettings?.().zoom||caps.zoom.min;$("#zoom-label").textContent=Number(input.value).toFixed(1)+'×';
+            input.addEventListener('change',async()=>{try{const z=await applyZoom(track,input.value);$("#zoom-label").textContent=z.toFixed(1)+'×';$("#camera-note").textContent='도표 전체가 보이도록 조절하세요.';}catch{$("#camera-note").textContent='이 기기에서는 배율을 바꿀 수 없습니다.';}});
+          }
+          if(caps.torch) {
+            $("#camera-controls").hidden=false;const torch=$("#torch");torch.hidden=false;let on=false;
+            torch.onclick=async()=>{try{await track.applyConstraints({advanced:[{torch:!on}]});on=!on;torch.textContent=on?'조명 끄기':'조명 켜기';torch.setAttribute('aria-pressed',String(on));}catch{$("#camera-note").textContent='조명을 켤 수 없습니다. 주변을 밝게 해 주세요.';}};
+          }
+        });
+        scene.addEventListener('arReady', () => {
+          const index=selectedTarget(rows,selected);
+          scene.systems['mindar-image-system'].switchTarget(index);
+          $("#splash").style.display='none';document.body.classList.add('started');
+          $("#scan-help").textContent=index===-1?'도표 전체를 화면에 담고 잠시 고정해 주세요. 인식이 어려우면 도표 찾기에서 대상을 선택하세요.':'선택한 도표 전체를 화면에 담고 잠시 고정해 주세요. 필요하면 배율·조명을 조절하세요.';
+        });
+        scene.addEventListener('arError', e => {
+          $("#splash-hint").textContent=e.detail?.error==='TRACKING_FAIL'?'인식 데이터를 시작하지 못했습니다. 도표 목록에서 영상을 재생하거나 새로고침해 주세요.':cameraErrorMessage(e.detail?.cause);
+          button.textContent='새로고침 후 다시 시도';button.disabled=false;button.onclick=()=>location.reload();
+        });
+        setSound(true);document.addEventListener('pointerdown',unlock);
+      } catch(e) {
+        $("#splash-hint").textContent=e.message;button.disabled=false;button.textContent='다시 시도';button.onclick=startAR;
+      }
     };
 
     // 카메라·소리 시작은 사용자 제스처가 있어야 안정적(iOS). 버튼 한 번으로 시작.
     $("#splash-hint").textContent = "버튼을 누르면 카메라가 켜지고 도판 인식이 시작됩니다.";
     const btn = $("#start-btn");
     btn.style.display = "";
-    btn.addEventListener("click", startAR, { once: true });
+    btn.onclick = startAR;
   </script>
 </body>
 </html>
