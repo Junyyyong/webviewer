@@ -91,8 +91,17 @@
           <input type="text" id="t-name" placeholder="선택 사항" />
           <label>도판 이미지 (인식할 사진)</label>
           <input type="file" id="t-image" accept="image/*" required />
+          <p id="target-note" class="muted" role="status"></p>
+          <label for="media-profile">영상·음원 용량 설정</label>
+          <select id="media-profile" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;background:white">
+            <option value="tablet">아이패드 · 선명하게 (기본, 최대 1080p / AAC 192kbps)</option>
+            <option value="mobile">휴대폰 · 가볍게 (최대 720p / AAC 128kbps)</option>
+            <option value="original">원본 유지 (파일당 25MiB 이하)</option>
+          </select>
+          <p class="muted">원본보다 크게 확대하지 않습니다. 긴 영상은 파일 제한에 맞춰 720p로 조정할 수 있습니다. 자동 변환은 재생 시간만큼 걸릴 수 있습니다.</p>
           <label>재생할 영상 또는 음악</label>
           <input type="file" id="t-video" accept="video/*,audio/*" required />
+          <p id="media-info" class="muted" role="status"></p>
           <p class="muted" style="margin:6px 0 0">음악 파일(mp3·m4a·wav 등)을 올리면 도판을 비출 때 음악이 재생됩니다.</p>
           <div style="margin-top:16px"><button type="submit" id="add-btn">추가</button></div>
         </form>
@@ -101,6 +110,11 @@
           파일은 하나당 최대 25MiB이며, 작을수록 관람자에게 빨리 뜹니다.</p>
       </section>
 
+      <section class="card">
+        <h2>인식이 잘 되게 등록하려면</h2>
+        <p class="muted">논문에 실제 인쇄된 도표와 같은 그림을 사용하세요. 화면 캡처보다 PDF·원본에서 선명하게 내보낸 이미지가 좋습니다. 넓은 흰 여백, 대칭·반복무늬, 서로 거의 같은 도표는 구별이 어려울 수 있습니다. 잘라 등록할 경우 인쇄본에서 같은 범위가 보이게 촬영하세요. 이미 인쇄한 도표에 없는 무늬를 파일에만 추가하지 마세요.</p>
+        <p class="muted">도판이 많아질수록 발행 시간과 처음 인식 데이터를 받는 시간이 늘어납니다. 기본 점검은 성공률 점수가 아니며 실제 휴대폰·아이패드에서 확인해야 합니다.</p>
+      </section>
       <section class="card">
         <h2>등록된 도판 <span id="count" class="muted"></span></h2>
         <div id="list"><p class="muted">불러오는 중…</p></div>
@@ -127,6 +141,8 @@
   <script type="module">
     const $ = (s) => document.querySelector(s);
     import { ContentStore, MAX_FILE } from './content-store.js';
+    import { PROFILES, MIB, videoPlan, loadMedia, releaseMedia, convertMedia } from './media-preparation.js';
+    import { inspectTarget } from './target-quality.js';
     const store = new ContentStore(window.GITHUB_CONTENT);
     const publicUrl = path => store.url(path);
     const toast = (msg, ms = 5000) => {
@@ -137,7 +153,7 @@
     let busy = false;
     function setBusy(value) {
       busy = value;
-      for (const el of document.querySelectorAll('#admin-view button, #logout, #add-form input')) el.disabled = value;
+      for (const el of document.querySelectorAll('#admin-view button, #logout, #add-form input, #media-profile')) el.disabled = value;
     }
     window.addEventListener('beforeunload', e => { if (busy || store.dirty) { e.preventDefault(); e.returnValue = ''; } });
     const extOf = (name) => { const m = /\.([a-z0-9]+)$/i.exec(name); return m ? m[1].toLowerCase() : "bin"; };
@@ -202,99 +218,38 @@
       }
     }
 
-    // ── 업로드 전 영상 자동 축소 (폰 감상용 720p) ───────────────
-    // 브라우저가 직접 H.264 MP4로 다시 인코딩한다. MP4로 녹화할 수 없는
-    // 브라우저에서는 변환하지 않는다 — WebM으로 저장하면 아이폰에서 재생이
-    // 안 되므로, 조용히 깨지느니 안내를 띄우는 편이 낫다.
     const MAX_UPLOAD = MAX_FILE;
-    const TARGET_H = 720;
-    const mb = (n) => (n / 1024 / 1024).toFixed(0);
-
-    const MP4_TYPES = [
-      "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
-      "video/mp4;codecs=avc1.4d002a,mp4a.40.2",
-      "video/mp4;codecs=avc1,mp4a.40.2",
-      "video/mp4",
-    ];
-    const mp4RecorderType = () =>
-      (window.MediaRecorder && MP4_TYPES.find((t) => MediaRecorder.isTypeSupported(t))) || null;
-
-    const loadVideo = (file) => new Promise((res, rej) => {
-      const v = document.createElement("video");
-      v.preload = "auto"; v.playsInline = true;
-      v.onloadeddata = () => res(v);              // 크기 + 첫 프레임까지 확보
-      v.onerror = () => rej(new Error("영상을 읽을 수 없습니다"));
-      v.src = URL.createObjectURL(file);
+    const mb = n => (n / MIB).toFixed(1);
+    $("#t-image").addEventListener('change', async () => {
+      const file = $("#t-image").files[0], note = $("#target-note");
+      note.textContent = '';
+      if (!file) return;
+      try {
+        const quality = await inspectTarget(file);
+        if ($("#t-image").files[0] !== file) return;
+        note.textContent = quality.warnings.length ? '인식 준비 점검: ' + quality.warnings.join(' ') : '이미지 기본 점검 완료. 실제 인식률은 인쇄 크기·조명·촬영 거리와 도표의 특징에 따라 달라집니다.';
+      } catch { note.textContent = '이미지 점검을 완료하지 못했습니다. 선명한 JPG·PNG 원본인지 확인해 주세요.'; }
     });
-
-    async function shrinkVideo(file, onProgress) {
-      const type = mp4RecorderType();
-      if (!type) throw new Error("UNSUPPORTED");
-
-      const v = await loadVideo(file);
-      const scale = Math.min(1, TARGET_H / v.videoHeight);
-      // 인코더가 짝수 크기를 요구하는 경우가 있어 2의 배수로 맞춘다
-      const w = Math.max(2, Math.round(v.videoWidth * scale / 2) * 2);
-      const h = Math.max(2, Math.round(v.videoHeight * scale / 2) * 2);
-
-      const canvas = document.createElement("canvas");
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(v, 0, 0, w, h);
-
-      // 소리는 Web Audio로 빼낸다. 스피커(ctx.destination)에는 연결하지 않으므로
-      // 변환 중 소리가 새지 않으면서 녹화에는 그대로 담긴다.
-      const actx = new (window.AudioContext || window.webkitAudioContext)();
-      await actx.resume().catch(() => {});
-      const dest = actx.createMediaStreamDestination();
-      let audioTracks = [];
+    async function mediaInfo() {
+      const file = $("#t-video").files[0], note = $("#media-info"); note.textContent = '';
+      if (!file) return;
+      let media;
       try {
-        actx.createMediaElementSource(v).connect(dest);
-        audioTracks = dest.stream.getAudioTracks();
-      } catch (_) {
-        v.muted = true;                            // 소리를 못 빼내면 스피커로도 내보내지 않는다
-      }
-
-      const stream = new MediaStream([
-        canvas.captureStream(30).getVideoTracks()[0],
-        ...audioTracks,
-      ]);
-      const rec = new MediaRecorder(stream, {
-        mimeType: type, videoBitsPerSecond: 2_500_000, audioBitsPerSecond: 128_000,
-      });
-      const parts = [];
-      rec.ondataavailable = (e) => { if (e.data.size) parts.push(e.data); };
-      const stopped = new Promise((res) => { rec.onstop = res; });
-
-      rec.start(1000);
-      const draw = () => {
-        if (v.ended) return;
-        ctx.drawImage(v, 0, 0, w, h);
-        onProgress(v.duration ? v.currentTime / v.duration : 0);
-        if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(draw);
-        else requestAnimationFrame(draw);
-      };
-      try {
-        await v.play();
-      } catch (_) {
-        throw new Error("브라우저가 변환용 재생을 막았습니다. 다시 시도하거나 직접 줄여서 올려 주세요.");
-      }
-      draw();
-      // 재생이 끝나면 종료. 어떤 이유로 ended가 오지 않아도 멈추도록 여유를 둔다.
-      await new Promise((res) => {
-        v.onended = res;
-        setTimeout(res, (v.duration || 60) * 1000 * 1.5 + 30000);
-      });
-      rec.stop();
-      await stopped;
-      actx.close().catch(() => {});
-      URL.revokeObjectURL(v.src);
-
-      const blob = new Blob(parts, { type: "video/mp4" });
-      if (!blob.size || blob.size >= file.size) return file;   // 되레 커졌으면 원본 사용
-      const base = file.name.replace(/\.[^.]+$/, "");
-      return new File([blob], `${base}-720p.mp4`, { type: "video/mp4" });
+        const audioOnly = isAudio(file.name), profile = $("#media-profile").value;
+        media = await loadMedia(file, audioOnly);
+        if ($("#t-video").files[0] !== file) return;
+        const duration = Math.round(media.duration);
+        if (profile === 'original') note.textContent = `원본 ${mb(file.size)}MiB · ${duration}초. 25MiB까지 등록할 수 있습니다.`;
+        else if (audioOnly) note.textContent = `${duration}초 · ${mb(file.size)}MiB. WAV·FLAC 등 큰 음원은 지원 브라우저에서 AAC ${PROFILES[profile].audioBps/1000}kbps로 변환합니다.`;
+        else {
+          const plan = videoPlan({width:media.videoWidth,height:media.videoHeight,duration:media.duration,size:file.size,force:!/\.mp4$/i.test(file.name)}, profile);
+          note.textContent = `원본 ${media.videoWidth}×${media.videoHeight} · ${duration}초 · ${mb(file.size)}MiB. ` + (plan.needsConversion ? `변환 목표 ${plan.label} · 약 ${plan.estimatedMiB.toFixed(1)}MiB (예상치)` : '이미 적정 크기여서 원본을 유지합니다.') + (plan.reduced ? ' 긴 영상이라 720p 범위로 조정합니다.' : '');
+        }
+      } catch(e) { if ($("#t-video").files[0] === file) note.textContent = e.message; }
+      finally { if (media) releaseMedia(media); }
     }
+    $("#t-video").addEventListener('change', mediaInfo);
+    $("#media-profile").addEventListener('change', mediaInfo);
 
     // ── 추가 ───────────────────────────────────────────────────
     $("#add-form").addEventListener("submit", async (e) => {
@@ -309,34 +264,24 @@
       const btn = $("#add-btn"); setBusy(true);
 
       try {
-        // 영상이 크거나 720p를 넘으면 올리기 전에 줄인다 (음악은 그대로 둔다)
-        if (!isAudio(vidFile.name)) {
-          let tooTall = false;
-          try {
-            const probe = await loadVideo(vidFile);
-            tooTall = probe.videoHeight > TARGET_H;
-            URL.revokeObjectURL(probe.src);
-          } catch (_) { /* 못 읽으면 아래 용량 검사로 넘긴다 */ }
-
-          if (tooTall || vidFile.size > MAX_UPLOAD * 0.9) {
-            if (!mp4RecorderType()) {
-              note.textContent =
-                `이 브라우저는 영상 자동 변환을 지원하지 않습니다.`
-                + ` Chrome이나 Edge에서 시도하시거나, HandBrake의 "Fast 720p30"으로`
-                + ` 직접 줄인 뒤 올려주세요.`;
-              return;
-            }
-            const t0 = Date.now();
-            btn.textContent = "변환 중…";
-            const before = vidFile.size;
-            vidFile = await shrinkVideo(vidFile, (p) => {
-              note.style.color = "";
-              note.textContent = `영상을 720p로 변환 중… ${Math.round(p * 100)}%`
-                + ` (${Math.round((Date.now() - t0) / 1000)}초 경과 · 이 탭을 벗어나지 마세요)`;
-            });
-            note.textContent = vidFile.size < before
-              ? `변환 완료: ${mb(before)}MB → ${mb(vidFile.size)}MB`
-              : `이미 충분히 작아 원본을 그대로 사용합니다.`;
+        const profile = $("#media-profile").value, audioOnly = isAudio(vidFile.name);
+        if (profile !== 'original') {
+          let shouldConvert;
+          if (audioOnly) shouldConvert = !/\.(mp3|m4a|aac)$/i.test(vidFile.name) || vidFile.size > 22*MIB;
+          else {
+            const probe = await loadMedia(vidFile);
+            try {
+              const plan = videoPlan({width:probe.videoWidth,height:probe.videoHeight,duration:probe.duration,size:vidFile.size,force:!/\.mp4$/i.test(vidFile.name)},profile);
+              shouldConvert = plan.needsConversion || !/\.mp4$/i.test(vidFile.name);
+            } finally { releaseMedia(probe); }
+          }
+          if (shouldConvert) {
+            const before = vidFile.size, t0 = Date.now(); btn.textContent = '변환 중…';
+            vidFile = await convertMedia(vidFile, {profile,audioOnly,onProgress:(progress,plan) => {
+              note.style.color = '';
+              note.textContent = `${audioOnly ? '음원' : '영상 '+plan.label} 변환 중… ${Math.round(progress*100)}% (${Math.round((Date.now()-t0)/1000)}초 · 탭을 열어 두세요)`;
+            }});
+            note.textContent = `처리 완료: ${mb(before)} → ${mb(vidFile.size)}MiB`;
           }
         }
 
@@ -346,7 +291,7 @@
           note.style.color = "#ef4444";
           note.textContent =
             `"${tooBig.name}" 이(가) ${mb(tooBig.size)}MB로 너무 큽니다 (최대 25MiB).`
-            + ` HandBrake의 "Fast 720p30"으로 한 번 더 줄여 주세요.`;
+            + ` 가벼운 설정을 선택하거나 필요한 구간만 나눠 올려 주세요.`;
           return;
         }
 
@@ -358,9 +303,10 @@
         // 이미지 종횡비 계산 (a-video 높이 = height/width)
         const aspect = await new Promise((res, rej) => {
           const im = new Image();
-          im.onload = () => res(im.naturalHeight / im.naturalWidth);
-          im.onerror = rej;
-          im.src = URL.createObjectURL(imgFile);
+          const url = URL.createObjectURL(imgFile);
+          im.onload = () => { URL.revokeObjectURL(url); res(im.naturalHeight / im.naturalWidth); };
+          im.onerror = () => { URL.revokeObjectURL(url); rej(new Error("도판 이미지를 읽을 수 없습니다.")); };
+          im.src = url;
         });
 
         await store.add({
@@ -369,6 +315,7 @@
         }, imgFile, vidFile);
 
         e.target.reset();
+        $("#target-note").textContent = ""; $("#media-info").textContent = "";
         toast("추가됨 — ‘발행’을 눌러 반영하세요");
         await loadList();
       } catch (err) {
