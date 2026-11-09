@@ -53,10 +53,3 @@ export function installCameraAssist(AFRAME) {
   };
 }
 export function selectedTarget(rows,id) {return rows.find(row=>row.id===id)?.mind_index??-1;}
-export async function applyZoom(track,value) {
-  const range=track.getCapabilities?.().zoom;
-  if(!range)throw new Error('이 카메라는 배율 조절을 지원하지 않습니다.');
-  const zoom=Math.max(range.min,Math.min(range.max,Number(value)));
-  if(!Number.isFinite(zoom))throw new Error('잘못된 배율입니다.');
-  await track.applyConstraints({advanced:[{zoom}]});return zoom;
-}

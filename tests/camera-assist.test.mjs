@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {requestCamera,improveFocus,selectedTarget,applyZoom,cameraErrorMessage,installCameraAssist} from '../site/camera-assist.js';
+import {requestCamera,improveFocus,selectedTarget,cameraErrorMessage,installCameraAssist} from '../site/camera-assist.js';
 test('requests rear 1080p video without audio and falls back only on device/constraint failures',async()=>{
  const calls=[];let count=0;
  const stream=await requestCamera({getUserMedia:async c=>{calls.push(c);if(count++===0)throw Object.assign(new Error(),{name:'OverconstrainedError'});return 'stream';}});
@@ -12,10 +12,8 @@ test('only requests supported focus and exposure controls, tolerates failure',as
  await improveFocus({getCapabilities:()=>caps,applyConstraints:async c=>{requested=c;throw new Error('optional');}});
  assert.deepEqual(requested,{advanced:[{focusMode:'continuous'}]});
 });
-test('narrows recognition to original mind index and safely clamps zoom',async()=>{
+test('narrows recognition to original mind index and explains camera permission errors',()=>{
  assert.equal(selectedTarget([{id:'target',mind_index:17}],'target'),17);assert.equal(selectedTarget([],'missing'),-1);
- let requested;const track={getCapabilities:()=>({zoom:{min:1,max:3}}),applyConstraints:async c=>requested=c};
- assert.equal(await applyZoom(track,8),3);assert.equal(requested.advanced[0].zoom,3);await assert.rejects(applyZoom(track,NaN));
  assert.match(cameraErrorMessage({name:'NotAllowedError'}),/권한/);
 });
 test('installs a camera boundary adapter without replacing the tracker',()=>{

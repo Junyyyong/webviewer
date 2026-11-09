@@ -26,7 +26,6 @@ export function mountLibrary({rows,assetUrl,loader,state,onSelect}) {
     if(!list.children.length){const empty=document.createElement('p');empty.textContent='검색 결과가 없습니다.';list.append(empty);}
   }
   for(const button of document.querySelectorAll('[data-open-library]'))button.addEventListener('click',()=>{render();dialog.showModal();});
-  document.querySelector('#scan-all').onclick=()=>{stop();dialog.close();onSelect(null);};
   document.querySelector('#library-close').onclick=()=>dialog.close();dialog.addEventListener('close',stop);
   search.addEventListener('input',render);
 }
