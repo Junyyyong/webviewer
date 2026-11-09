@@ -5,7 +5,7 @@ export function mountLibrary({rows,assetUrl,loader,state}) {
   function stopCurrent() {
     if(!current)return;
     const {media,visual,poster,status}=current;
-    media.pause();visual.replaceChildren(poster);status.textContent='';current=null;state.manualMedia=null;
+    media.pause();media.remove();poster.disabled=false;status.textContent='';current=null;state.manualMedia=null;
   }
   function pauseAR() {
     for(const media of document.querySelectorAll('a-assets video,a-assets audio,#pinned video,#pinned audio'))media.pause();
@@ -27,13 +27,9 @@ export function mountLibrary({rows,assetUrl,loader,state}) {
         stopCurrent();state.manual=true;pauseAR();
         const media=document.createElement(audioOnly?'audio':'video');
         media.controls=true;media.playsInline=true;media.setAttribute('playsinline','');media.setAttribute('webkit-playsinline','');media.preload='none';media.muted=!state.soundOn;media.dataset.src=assetUrl(row.video_path);
-        if(audioOnly) {
-          const cover=image.cloneNode();cover.src=image.currentSrc||image.src;cover.alt='';visual.replaceChildren(cover,media);
-        } else {
-          media.poster=image.currentSrc||image.src;media.style.aspectRatio=String(1/row.aspect);
-          media.addEventListener('loadedmetadata',()=>{if(media.videoWidth&&media.videoHeight)media.style.aspectRatio=`${media.videoWidth}/${media.videoHeight}`;});
-          visual.replaceChildren(media);
-        }
+        // The image stays in normal flow and determines the card height.
+        // Playback is an absolute layer, so neither the image nor the list moves.
+        poster.disabled=true;visual.append(media);
         current={media,visual,poster,status};state.manualMedia=media;status.textContent='불러오는 중…';
         media.addEventListener('playing',()=>{if(current?.media===media)status.textContent='';});
         media.addEventListener('error',()=>{
