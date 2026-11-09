@@ -5,6 +5,6 @@
   "type": "module",
   "scripts": {
     "serve": "node tools/serve.mjs",
-    "deploy": "git push origin $(git subtree split --prefix=site HEAD):gh-pages --force"
+    "test": "node --test tests/*.test.mjs"
   }
 }

@@ -158,38 +158,19 @@
     };
     const escAttr = (s) => String(s).replace(/"/g, "&quot;");
 
-    // 설정 확인
-    if (!window.SUPABASE_URL || window.SUPABASE_URL.includes("YOUR-PROJECT")) {
-      showMessage("아직 Supabase 접속 정보가 설정되지 않았습니다. (site/config.js)");
-      throw new Error("config.js 미설정");
-    }
-
-    let sb;
-    try {
-      const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
-      sb = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-    } catch (e) {
-      showMessage("네트워크 오류로 초기화에 실패했습니다. 인터넷 연결을 확인한 뒤 새로고침해 주세요.");
-      throw e;
-    }
-
-    const bucket = window.MEDIA_BUCKET || "media";
-    const publicUrl = (path) => sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
-
-    // 발행된 타깃 목록 불러오기 (mind_index 순서 = targets.mind 안의 순서)
-    const { data: rows, error } = await sb
-      .from("targets")
-      .select("*")
-      .not("mind_index", "is", null)
-      .order("mind_index", { ascending: true });
-
-    if (error) { showMessage("데이터를 불러오지 못했습니다: " + error.message); throw error; }
-    if (!rows || rows.length === 0) {
+    import { readManifest, assetUrl, loadMindUrl } from './content-store.js';
+    let manifest;
+    try { manifest = await readManifest(); }
+    catch (e) { showMessage(e.message); throw e; }
+    const publicUrl = assetUrl;
+    const rows = manifest.targets.filter(r => r.mind_index !== null).sort((a,b) => a.mind_index-b.mind_index);
+    if (!rows.length) {
       showMessage("아직 등록된 도판이 없습니다. 관리자 페이지에서 이미지를 추가한 뒤 ‘발행’해 주세요.");
       throw new Error("등록된 타깃 없음");
     }
-
-    const mindUrl = publicUrl("targets.mind");
+    let mindUrl;
+    try { mindUrl = await loadMindUrl(manifest); }
+    catch(e) { showMessage(e.message); throw e; }
 
     // 재생 파일이 음악인지 영상인지는 확장자로 판별한다 (DB 변경 불필요)
     const isAudio = (path) => /\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|weba)$/i.test(path);

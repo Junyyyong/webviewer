@@ -73,11 +73,11 @@
     <section id="login-view" class="card hidden">
       <h2>관리자 로그인</h2>
       <form id="login-form">
-        <label>이메일</label>
-        <input type="email" id="email" autocomplete="username" required />
-        <label>비밀번호</label>
-        <input type="password" id="password" autocomplete="current-password" required />
-        <div style="margin-top:16px"><button type="submit">로그인</button></div>
+        <p class="muted">이 저장소에만 Contents 읽기·쓰기 권한을 준 GitHub 토큰으로 연결합니다. 토큰은 이 탭을 닫거나 로그아웃하면 지워집니다.</p>
+        <label for="password">GitHub 저장소 토큰</label>
+        <input type="password" id="password" autocomplete="off" required />
+        <p class="muted"><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">토큰 만들기</a> · <a href="./ADMIN_GUIDE.html" target="_blank" rel="noopener">설정 도움말</a></p>
+        <div style="margin-top:16px"><button type="submit">연결하기</button> <button type="button" id="discard-draft" class="secondary">임시 자료 지우기</button></div>
       </form>
       <p class="muted" id="login-error" style="color:#ef4444; margin-top:12px"></p>
     </section>
@@ -98,7 +98,7 @@
         </form>
         <p id="add-note" style="color:#ef4444; font-size:13px; margin:12px 0 0; line-height:1.6"></p>
         <p class="muted" style="margin:12px 0 0">추가 후 아래 <b>발행</b>을 눌러야 실제 뷰어에 반영됩니다.
-          파일은 하나당 최대 50MB이며, 작을수록 관람자에게 빨리 뜹니다.</p>
+          파일은 하나당 최대 25MiB이며, 작을수록 관람자에게 빨리 뜹니다.</p>
       </section>
 
       <section class="card">
@@ -108,10 +108,16 @@
 
       <section class="card">
         <h2>발행</h2>
-        <p class="muted">이미지들로 인식 데이터(targets.mind)를 만들어 클라우드에 올립니다. 도판을 추가·삭제한 뒤 반드시 한 번 눌러 주세요.</p>
+        <p class="muted">인식 데이터를 만들고 도표·영상과 함께 발행합니다. 발행 전까지 공개 화면은 바뀌지 않으며, 발행 후 자동 배포에 몇 분 걸릴 수 있습니다. 도판 51개는 인식 데이터 생성에 시간이 걸립니다. 창을 닫지 마세요.</p>
         <progress id="pub-progress" class="hidden" max="100" value="0"></progress>
         <div style="margin-top:14px"><button id="publish-btn">발행하기</button></div>
         <p class="muted" id="pub-note" style="margin:10px 0 0"></p>
+      </section>
+      <section class="card">
+        <h2>기존 Supabase 자료 가져오기</h2>
+        <p class="muted">기존 프로젝트에서 아직 없는 도판과 파일만 복사합니다. Supabase 원본은 수정하지 않습니다. 가져온 뒤 발행해 주세요. 현재 이전한 51개는 다시 가져올 필요가 없습니다.</p>
+        <button id="import-btn" class="secondary">기존 자료 가져오기</button>
+        <p id="import-note" class="muted" role="status"></p>
       </section>
     </div>
   </main>
@@ -120,24 +126,20 @@
 
   <script type="module">
     const $ = (s) => document.querySelector(s);
-    const bucket = window.MEDIA_BUCKET || "media";
-    let sb, images, videos; // storage 폴더 접두어
-
-    const toast = (msg, ms = 2600) => {
+    import { ContentStore, MAX_FILE } from './content-store.js';
+    const store = new ContentStore(window.GITHUB_CONTENT);
+    const publicUrl = path => store.url(path);
+    const toast = (msg, ms = 5000) => {
       const el = $("#status"); el.textContent = msg; el.classList.add("show");
       clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove("show"), ms);
     };
-
-    if (!window.SUPABASE_URL || window.SUPABASE_URL.includes("YOUR-PROJECT")) {
-      $("#login-view").classList.remove("hidden");
-      $("#login-error").textContent = "먼저 site/config.js 에 Supabase 접속 정보를 입력하세요.";
-      throw new Error("config.js 미설정");
+    const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    let busy = false;
+    function setBusy(value) {
+      busy = value;
+      for (const el of document.querySelectorAll('#admin-view button, #logout, #add-form input')) el.disabled = value;
     }
-
-    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
-    sb = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-
-    const publicUrl = (path) => sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+    window.addEventListener('beforeunload', e => { if (busy || store.dirty) { e.preventDefault(); e.returnValue = ''; } });
     const extOf = (name) => { const m = /\.([a-z0-9]+)$/i.exec(name); return m ? m[1].toLowerCase() : "bin"; };
     // 재생 파일이 음악인지는 확장자로 판별한다 (뷰어도 같은 규칙을 쓴다)
     const isAudio = (path) => /\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|weba)$/i.test(path);
@@ -151,25 +153,35 @@
       if (authed) await loadList();
     };
 
-    sb.auth.onAuthStateChange((_e, session) => { render(session); });
-    render((await sb.auth.getSession()).data.session);
-
-    // ── 로그인 / 로그아웃 ──────────────────────────────────────
-    $("#login-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      $("#login-error").textContent = "";
-      const { error } = await sb.auth.signInWithPassword({
-        email: $("#email").value.trim(), password: $("#password").value,
-      });
-      if (error) $("#login-error").textContent = "로그인 실패: " + error.message;
+    render(null);
+    $("#login-form").addEventListener("submit", async e => {
+      e.preventDefault(); $("#login-error").textContent = '';
+      const button = e.target.querySelector('button[type="submit"]'); button.disabled = true;
+      try {
+        await store.login($("#password").value); $("#password").value = ''; await render(true);
+        if (store.dirty) toast('이 브라우저의 미발행 자료를 복구했습니다.');
+      } catch(err) { store.logout(); $("#login-error").textContent = err.message; }
+      finally { button.disabled = false; }
     });
-    $("#logout").addEventListener("click", () => sb.auth.signOut());
+    $("#logout").addEventListener("click", () => { store.logout(); render(null); });
+    $("#discard-draft").addEventListener('click', async () => {
+      if (!confirm('이 브라우저의 미발행 자료만 지울까요? 발행된 자료는 유지됩니다.')) return;
+      try { await store.discard(); store.dirty = false; toast('임시 자료를 지웠습니다. 다시 연결하세요.'); } catch(err) { toast(err.message); }
+    });
+    $("#import-btn").addEventListener('click', async () => {
+      if (busy) return; setBusy(true);
+      const note = $("#import-note");
+      try {
+        const count = await store.importSupabase({url:window.SUPABASE_URL,key:window.SUPABASE_ANON_KEY,bucket:window.MEDIA_BUCKET}, msg => note.textContent = msg);
+        note.textContent = `${count}개를 가져왔습니다. 발행하기를 누르면 공개됩니다.`; await loadList();
+      } catch(err) { note.textContent = err.message; }
+      finally { setBusy(false); }
+    });
 
     // ── 목록 ───────────────────────────────────────────────────
     async function loadList() {
       const list = $("#list");
-      const { data: rows, error } = await sb.from("targets").select("*").order("created_at", { ascending: true });
-      if (error) { list.innerHTML = `<p class="muted" style="color:#ef4444">불러오기 실패: ${error.message}</p>`; return; }
+      const rows = store.rows;
       $("#count").textContent = rows.length ? `(${rows.length}개)` : "";
       if (!rows.length) { list.innerHTML = `<p class="muted">아직 없습니다. 위에서 도판을 추가하세요.</p>`; return; }
       list.innerHTML = "";
@@ -180,11 +192,11 @@
         div.innerHTML = `
           <img src="${publicUrl(r.image_path)}" alt="" />
           <div class="meta">
-            <b>${r.name || "(이름 없음)"}</b>
-            <small>${isAudio(r.video_path) ? "🎵 음악" : "🎬 영상"} · ${r.video_path.split("/").pop()}</small>
+            <b>${escapeHTML(r.name || "(이름 없음)")}</b>
+            <small>${isAudio(r.video_path) ? "🎵 음악" : "🎬 영상"} · ${escapeHTML(r.video_path.split("/").pop())}</small>
           </div>
           <span class="badge ${published ? "" : "pending"}">${published ? "발행됨" : "미발행"}</span>
-          <button class="danger" data-id="${r.id}">삭제</button>`;
+          <button class="danger" data-id="${escapeHTML(r.id)}">삭제</button>`;
         div.querySelector("button").addEventListener("click", () => removeTarget(r));
         list.appendChild(div);
       }
@@ -194,7 +206,7 @@
     // 브라우저가 직접 H.264 MP4로 다시 인코딩한다. MP4로 녹화할 수 없는
     // 브라우저에서는 변환하지 않는다 — WebM으로 저장하면 아이폰에서 재생이
     // 안 되므로, 조용히 깨지느니 안내를 띄우는 편이 낫다.
-    const MAX_UPLOAD = 50 * 1024 * 1024;
+    const MAX_UPLOAD = MAX_FILE;
     const TARGET_H = 720;
     const mb = (n) => (n / 1024 / 1024).toFixed(0);
 
@@ -287,13 +299,14 @@
     // ── 추가 ───────────────────────────────────────────────────
     $("#add-form").addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (busy) return;
       const imgFile = $("#t-image").files[0];
       let vidFile = $("#t-video").files[0];
       if (!imgFile || !vidFile) return;
 
       const note = $("#add-note");
       note.textContent = "";
-      const btn = $("#add-btn"); btn.disabled = true;
+      const btn = $("#add-btn"); setBusy(true);
 
       try {
         // 영상이 크거나 720p를 넘으면 올리기 전에 줄인다 (음악은 그대로 둔다)
@@ -332,15 +345,15 @@
         if (tooBig) {
           note.style.color = "#ef4444";
           note.textContent =
-            `"${tooBig.name}" 이(가) ${mb(tooBig.size)}MB로 너무 큽니다 (최대 50MB).`
+            `"${tooBig.name}" 이(가) ${mb(tooBig.size)}MB로 너무 큽니다 (최대 25MiB).`
             + ` HandBrake의 "Fast 720p30"으로 한 번 더 줄여 주세요.`;
           return;
         }
 
         btn.textContent = "업로드 중…";
         const id = crypto.randomUUID();
-        const imagePath = `images/${id}.${extOf(imgFile.name)}`;
-        const videoPath = `videos/${id}.${extOf(vidFile.name)}`;
+        const imagePath = `media/images/${id}.${extOf(imgFile.name)}`;
+        const videoPath = `media/videos/${id}.${extOf(vidFile.name)}`;
 
         // 이미지 종횡비 계산 (a-video 높이 = height/width)
         const aspect = await new Promise((res, rej) => {
@@ -350,16 +363,10 @@
           im.src = URL.createObjectURL(imgFile);
         });
 
-        let up = await sb.storage.from(bucket).upload(imagePath, imgFile, { upsert: true, contentType: imgFile.type });
-        if (up.error) throw up.error;
-        up = await sb.storage.from(bucket).upload(videoPath, vidFile, { upsert: true, contentType: vidFile.type });
-        if (up.error) throw up.error;
-
-        const ins = await sb.from("targets").insert({
-          name: $("#t-name").value.trim() || null,
+        await store.add({
+          id, created_at: new Date().toISOString(), name: $("#t-name").value.trim() || null,
           image_path: imagePath, video_path: videoPath, aspect,
-        });
-        if (ins.error) throw ins.error;
+        }, imgFile, vidFile);
 
         e.target.reset();
         toast("추가됨 — ‘발행’을 눌러 반영하세요");
@@ -367,7 +374,7 @@
       } catch (err) {
         toast("추가 실패: " + (err.message || err));
       } finally {
-        btn.disabled = false; btn.textContent = "추가";
+        setBusy(false); btn.textContent = "추가";
       }
     });
 
@@ -375,14 +382,14 @@
     async function removeTarget(r) {
       if (!confirm(`"${r.name || "이름 없음"}" 을 삭제할까요?`)) return;
       try {
-        await sb.storage.from(bucket).remove([r.image_path, r.video_path]);
-        const del = await sb.from("targets").delete().eq("id", r.id);
-        if (del.error) throw del.error;
+        if (busy) return;
+        setBusy(true);
+        await store.remove(r.id);
         toast("삭제됨 — ‘발행’을 눌러 반영하세요");
         await loadList();
       } catch (err) {
         toast("삭제 실패: " + (err.message || err));
-      }
+      } finally { setBusy(false); }
     }
 
     // ── 발행: 브라우저에서 targets.mind 컴파일 후 업로드 ─────────
@@ -431,11 +438,16 @@
       if (!window.MINDAR || !window.MINDAR.IMAGE || !window.MINDAR.IMAGE.Compiler) {
         note.textContent = "컴파일러 로드 실패 — 새로고침 후 다시 시도하세요."; return;
       }
-      btn.disabled = true; note.textContent = ""; prog.classList.remove("hidden"); prog.value = 0;
+      if (busy) return;
+      setBusy(true); note.textContent = ""; prog.classList.remove("hidden"); prog.value = 0;
       try {
-        const { data: rows, error } = await sb.from("targets").select("*").order("created_at", { ascending: true });
-        if (error) throw error;
-        if (!rows.length) { note.textContent = "발행할 도판이 없습니다."; return; }
+        const rows = structuredClone(store.rows);
+        if (!rows.length) {
+          if (!confirm('모든 도판을 내린 빈 목록을 발행할까요?')) return;
+          await store.publish(null, msg => note.textContent = msg);
+          note.textContent = '빈 목록을 발행했습니다. 자동 배포 후 반영됩니다.';
+          await loadList(); return;
+        }
 
         const imgs = [];
         let shrunk = 0;
@@ -462,28 +474,18 @@
         }
         const buffer = compiler.exportData();
 
-        note.textContent = "업로드 중…";
-        const up = await sb.storage.from(bucket).upload("targets.mind", new Blob([buffer]), {
-          upsert: true, contentType: "application/octet-stream",
-        });
-        if (up.error) throw up.error;
-
-        // mind_index 를 컴파일 순서대로 기록 (뷰어가 이 순서로 매핑)
-        for (let i = 0; i < rows.length; i++) {
-          const u = await sb.from("targets").update({ mind_index: i }).eq("id", rows[i].id);
-          if (u.error) throw u.error;
-        }
-
+        const commitUrl = await store.publish(buffer, msg => note.textContent = msg);
         prog.value = 100;
         note.textContent = `발행 완료 — 도판 ${rows.length}개`
           + (shrunk ? ` (${shrunk}개는 컴파일용으로 축소해 시간을 줄였습니다)` : "")
-          + `. 뷰어에서 바로 사용할 수 있습니다.`;
+          + `. 자동 배포 완료 후 뷰어에 반영됩니다.`;
+        const link = document.createElement("a"); link.href = commitUrl; link.textContent = " 저장 기록 확인"; link.target = "_blank"; link.rel = "noopener"; note.appendChild(link);
         toast("발행 완료");
         await loadList();
       } catch (err) {
         note.textContent = "발행 실패: " + (err.message || err);
       } finally {
-        btn.disabled = false;
+        setBusy(false);
         setTimeout(() => prog.classList.add("hidden"), 1200);
       }
     });

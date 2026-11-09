@@ -1,0 +1,7 @@
+/content/manifest.json
+  Cache-Control: no-cache
+/*.html
+  Cache-Control: no-cache
+/*
+  Referrer-Policy: no-referrer
+  X-Content-Type-Options: nosniff
