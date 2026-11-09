@@ -1,3 +1,4 @@
+import { createThumbnail, thumbnailPath } from './thumbnails.js';
 // GitHub credentials live only in memory. Draft files are stored locally in IndexedDB.
 export const MAX_FILE = 25 * 1024 * 1024;
 export function safePath(path) {
@@ -13,6 +14,7 @@ export function validateManifest(m) {
   for (const r of m.targets) {
     if (!r.id || ids.has(r.id) || typeof r.name !== 'string' && r.name !== null || !Number.isFinite(r.aspect) || r.aspect <= 0) throw new Error('도판 정보가 잘못되었습니다.');
     ids.add(r.id); safePath(r.image_path); safePath(r.video_path);
+    if(r.thumbnail_path) safePath(r.thumbnail_path);
     if (r.mind_index !== null) {
       if (!Number.isInteger(r.mind_index) || r.mind_index < 0 || indices.has(r.mind_index)) throw new Error('도판 인식 순서가 중복되거나 잘못되었습니다.');
       indices.add(r.mind_index);
@@ -91,11 +93,13 @@ export class ContentStore {
   }
   async add(row, image, video) {
     for(const f of [image,video]) if(!f.size || f.size>MAX_FILE) throw new Error('파일은 0바이트보다 크고 25MiB 이하여야 합니다.');
+    const preview=await createThumbnail(image);
+    if(preview) { row={...row,thumbnail_path:safePath(thumbnailPath(row.image_path))}; this.files.set(row.thumbnail_path,preview); }
     this.files.set(row.image_path,image); this.files.set(row.video_path,video); this.rows.push({...row,mind_index:null}); await this.save();
   }
   async remove(id) {
     const r=this.rows.find(r=>r.id===id); this.rows=this.rows.filter(r=>r.id!==id);
-    for(const p of [r.image_path,r.video_path]) { this.files.delete(p); if(this.urls.has(p)) URL.revokeObjectURL(this.urls.get(p)); this.urls.delete(p); }
+    for(const p of [r.image_path,r.video_path,r.thumbnail_path].filter(Boolean)) { this.files.delete(p); if(this.urls.has(p)) URL.revokeObjectURL(this.urls.get(p)); this.urls.delete(p); }
     await this.save();
   }
   async publish(buffer, progress=()=>{}) {
@@ -149,6 +153,8 @@ export class ContentStore {
         const blob=await f.blob(); if(!blob.size||blob.size>MAX_FILE) throw new Error(`${r[k]}: 파일 크기 제한 초과. 원본은 변경하지 않았습니다.`);
         files.set(p,blob); item[k]=p;
       }
+      const preview=await createThumbnail(files.get(item.image_path));
+      if(preview) {item.thumbnail_path=safePath(thumbnailPath(item.image_path));files.set(item.thumbnail_path,preview);}
       additions.push(item);
     }
     // No partial import on a failed file.

@@ -15,7 +15,8 @@
       "video_path": "media/videos/d9a03c4a-936e-4771-ba35-8a3dd81b361c.mp4",
       "aspect": 0.852451,
       "mind_index": 0,
-      "created_at": "2026-08-16T07:38:23.09363+00:00"
+      "created_at": "2026-08-16T07:38:23.09363+00:00",
+      "thumbnail_path": "media/thumbnails/d9a03c4a-936e-4771-ba35-8a3dd81b361c.jpg"
     },
     {
       "id": "b2f9ea7a-6d54-4922-8a5e-aae94cf3711b",
@@ -24,7 +25,8 @@
       "video_path": "media/videos/4abf432f-d1fb-4f86-97fb-448bce7c913c.mp4",
       "aspect": 0.602802,
       "mind_index": 1,
-      "created_at": "2026-08-16T07:38:42.478676+00:00"
+      "created_at": "2026-08-16T07:38:42.478676+00:00",
+      "thumbnail_path": "media/thumbnails/4abf432f-d1fb-4f86-97fb-448bce7c913c.jpg"
     },
     {
       "id": "ec6c134b-905e-4759-8674-3f5735f9fca5",
@@ -33,7 +35,8 @@
       "video_path": "media/videos/16789c29-0625-4481-9e06-3c9c29b79b71.mp4",
       "aspect": 0.565628,
       "mind_index": 2,
-      "created_at": "2026-08-16T07:38:58.662102+00:00"
+      "created_at": "2026-08-16T07:38:58.662102+00:00",
+      "thumbnail_path": "media/thumbnails/16789c29-0625-4481-9e06-3c9c29b79b71.jpg"
     },
     {
       "id": "ca19ba54-821c-46ab-b794-451f21711a48",
@@ -42,7 +45,8 @@
       "video_path": "media/videos/99092da0-fecd-4d93-bd83-4a4f324af133.mp4",
       "aspect": 1.13203,
       "mind_index": 3,
-      "created_at": "2026-08-16T07:52:20.218851+00:00"
+      "created_at": "2026-08-16T07:52:20.218851+00:00",
+      "thumbnail_path": "media/thumbnails/99092da0-fecd-4d93-bd83-4a4f324af133.jpg"
     },
     {
       "id": "af4625dc-6cee-4b2a-8810-b813b82929d2",
@@ -51,7 +55,8 @@
       "video_path": "media/videos/b5a6ed66-055a-4a18-a9fe-a4e66f77fda6.mp4",
       "aspect": 1,
       "mind_index": 4,
-      "created_at": "2026-08-16T07:58:21.543914+00:00"
+      "created_at": "2026-08-16T07:58:21.543914+00:00",
+      "thumbnail_path": "media/thumbnails/b5a6ed66-055a-4a18-a9fe-a4e66f77fda6.jpg"
     },
     {
       "id": "2cd56efc-61db-4db9-8d4d-59dc52136bf7",
@@ -60,7 +65,8 @@
       "video_path": "media/videos/1349e000-b82b-4eb4-b5d6-854c230c5fb1.mp4",
       "aspect": 1,
       "mind_index": 5,
-      "created_at": "2026-08-16T07:58:44.977421+00:00"
+      "created_at": "2026-08-16T07:58:44.977421+00:00",
+      "thumbnail_path": "media/thumbnails/1349e000-b82b-4eb4-b5d6-854c230c5fb1.jpg"
     },
     {
       "id": "50c8bc77-e99a-4488-ba5f-f2abf49e3490",
@@ -69,7 +75,8 @@
       "video_path": "media/videos/0d0ef15a-0930-453c-9169-e624cd0e2be5.mp4",
       "aspect": 1,
       "mind_index": 6,
-      "created_at": "2026-08-16T07:59:36.280217+00:00"
+      "created_at": "2026-08-16T07:59:36.280217+00:00",
+      "thumbnail_path": "media/thumbnails/0d0ef15a-0930-453c-9169-e624cd0e2be5.jpg"
     },
     {
       "id": "b81c79c5-b004-45d2-86b8-15de115af186",
@@ -78,7 +85,8 @@
       "video_path": "media/videos/6a2d1467-6fb5-4817-9812-1f1ddc5cce03.mp4",
       "aspect": 1,
       "mind_index": 7,
-      "created_at": "2026-08-16T07:59:58.488053+00:00"
+      "created_at": "2026-08-16T07:59:58.488053+00:00",
+      "thumbnail_path": "media/thumbnails/6a2d1467-6fb5-4817-9812-1f1ddc5cce03.jpg"
     },
     {
       "id": "959c8296-e1fe-4124-be61-81e68ff0ba2b",
@@ -87,7 +95,8 @@
       "video_path": "media/videos/b34e4942-785f-41d3-8d73-607e93b835c1.mp4",
       "aspect": 1,
       "mind_index": 8,
-      "created_at": "2026-08-16T08:03:07.01359+00:00"
+      "created_at": "2026-08-16T08:03:07.01359+00:00",
+      "thumbnail_path": "media/thumbnails/b34e4942-785f-41d3-8d73-607e93b835c1.jpg"
     },
     {
       "id": "5d023852-acf4-4049-9d26-30706d175525",
@@ -96,7 +105,8 @@
       "video_path": "media/videos/43a74bea-842e-42c7-b3db-ec495bcc6bc0.mp4",
       "aspect": 1,
       "mind_index": 9,
-      "created_at": "2026-08-16T08:07:29.175486+00:00"
+      "created_at": "2026-08-16T08:07:29.175486+00:00",
+      "thumbnail_path": "media/thumbnails/43a74bea-842e-42c7-b3db-ec495bcc6bc0.jpg"
     },
     {
       "id": "53ed7d63-5e6c-4684-bb3e-b85c95b14506",
@@ -105,7 +115,8 @@
       "video_path": "media/videos/f93c72b9-4900-4bc2-9f4b-286817310ff7.mp4",
       "aspect": 1,
       "mind_index": 10,
-      "created_at": "2026-08-16T08:07:46.567087+00:00"
+      "created_at": "2026-08-16T08:07:46.567087+00:00",
+      "thumbnail_path": "media/thumbnails/f93c72b9-4900-4bc2-9f4b-286817310ff7.jpg"
     },
     {
       "id": "33ff8e50-8c5f-4ea6-b0a8-b5c19544deb7",
@@ -114,7 +125,8 @@
       "video_path": "media/videos/24efea9b-5d0d-432f-a759-2535e1847633.mp4",
       "aspect": 1,
       "mind_index": 11,
-      "created_at": "2026-08-16T08:09:46.288152+00:00"
+      "created_at": "2026-08-16T08:09:46.288152+00:00",
+      "thumbnail_path": "media/thumbnails/24efea9b-5d0d-432f-a759-2535e1847633.jpg"
     },
     {
       "id": "efefcc93-eff4-4615-963d-a6858bf60692",
@@ -123,7 +135,8 @@
       "video_path": "media/videos/879a4539-276b-47ff-8ca7-ca6ebb7cb3e1.mp4",
       "aspect": 1,
       "mind_index": 12,
-      "created_at": "2026-08-16T08:09:57.952987+00:00"
+      "created_at": "2026-08-16T08:09:57.952987+00:00",
+      "thumbnail_path": "media/thumbnails/879a4539-276b-47ff-8ca7-ca6ebb7cb3e1.jpg"
     },
     {
       "id": "1425e5a1-65cd-4bea-b845-16a3862e3a2a",
@@ -132,7 +145,8 @@
       "video_path": "media/videos/b8339e8c-489a-44b4-98cc-970f2a38e05b.mp4",
       "aspect": 1,
       "mind_index": 13,
-      "created_at": "2026-08-16T08:14:53.278732+00:00"
+      "created_at": "2026-08-16T08:14:53.278732+00:00",
+      "thumbnail_path": "media/thumbnails/b8339e8c-489a-44b4-98cc-970f2a38e05b.jpg"
     },
     {
       "id": "d1246ef3-7eb9-4ea1-b368-d4bf972c3d9e",
@@ -141,7 +155,8 @@
       "video_path": "media/videos/221358d9-ac42-4f3d-9c2e-a9cb415a0738.mp4",
       "aspect": 1.13546,
       "mind_index": 14,
-      "created_at": "2026-08-16T08:21:59.896071+00:00"
+      "created_at": "2026-08-16T08:21:59.896071+00:00",
+      "thumbnail_path": "media/thumbnails/221358d9-ac42-4f3d-9c2e-a9cb415a0738.jpg"
     },
     {
       "id": "5050e5f1-d109-45be-9c6f-c7ac2cf35921",
@@ -150,7 +165,8 @@
       "video_path": "media/videos/452bcecc-4c51-42f5-941b-0e49a8378cb5.mp4",
       "aspect": 1.13546,
       "mind_index": 15,
-      "created_at": "2026-08-16T08:23:43.240375+00:00"
+      "created_at": "2026-08-16T08:23:43.240375+00:00",
+      "thumbnail_path": "media/thumbnails/452bcecc-4c51-42f5-941b-0e49a8378cb5.jpg"
     },
     {
       "id": "4edc2fe6-8584-40c6-9cbf-dd378f7f668c",
@@ -159,7 +175,8 @@
       "video_path": "media/videos/55e2d461-5403-4299-8c1f-d9e5faae66a7.mp4",
       "aspect": 1.1352,
       "mind_index": 16,
-      "created_at": "2026-08-16T08:25:38.839963+00:00"
+      "created_at": "2026-08-16T08:25:38.839963+00:00",
+      "thumbnail_path": "media/thumbnails/55e2d461-5403-4299-8c1f-d9e5faae66a7.jpg"
     },
     {
       "id": "2d5ca3d6-e29a-4c68-bbf4-a897be1e1e1e",
@@ -168,7 +185,8 @@
       "video_path": "media/videos/cb3c2913-ad68-4ce2-9135-5297a1cb2b93.mp4",
       "aspect": 1.13546,
       "mind_index": 17,
-      "created_at": "2026-08-16T08:27:30.238366+00:00"
+      "created_at": "2026-08-16T08:27:30.238366+00:00",
+      "thumbnail_path": "media/thumbnails/cb3c2913-ad68-4ce2-9135-5297a1cb2b93.jpg"
     },
     {
       "id": "e105f0d2-047d-47e9-93d3-4582ab0de8c2",
@@ -177,7 +195,8 @@
       "video_path": "media/videos/fe825125-7bc6-4aef-996d-7815a47d042b.mp4",
       "aspect": 1.13546,
       "mind_index": 18,
-      "created_at": "2026-08-16T08:30:57.788308+00:00"
+      "created_at": "2026-08-16T08:30:57.788308+00:00",
+      "thumbnail_path": "media/thumbnails/fe825125-7bc6-4aef-996d-7815a47d042b.jpg"
     },
     {
       "id": "4eb6b7c3-5032-498a-81ff-9bb47e140f6e",
@@ -186,7 +205,8 @@
       "video_path": "media/videos/d6539485-e0b2-4c7b-ab0b-6e44ec89e0cf.mp4",
       "aspect": 1.13546,
       "mind_index": 19,
-      "created_at": "2026-08-16T08:33:31.622275+00:00"
+      "created_at": "2026-08-16T08:33:31.622275+00:00",
+      "thumbnail_path": "media/thumbnails/d6539485-e0b2-4c7b-ab0b-6e44ec89e0cf.jpg"
     },
     {
       "id": "4731abb9-6015-46cf-9c5c-6a65df7b8cf5",
@@ -195,7 +215,8 @@
       "video_path": "media/videos/62d2a431-a3d5-4591-b8be-1d29e0646588.mp4",
       "aspect": 0.565187,
       "mind_index": 20,
-      "created_at": "2026-08-16T08:35:14.828536+00:00"
+      "created_at": "2026-08-16T08:35:14.828536+00:00",
+      "thumbnail_path": "media/thumbnails/62d2a431-a3d5-4591-b8be-1d29e0646588.jpg"
     },
     {
       "id": "668c9bde-c9a2-4d2c-8801-bd6b948e4c65",
@@ -204,7 +225,8 @@
       "video_path": "media/videos/ed7dbd2e-3869-41f2-a1c1-a48e09cffdf0.mp4",
       "aspect": 0.565187,
       "mind_index": 21,
-      "created_at": "2026-08-16T08:36:22.606572+00:00"
+      "created_at": "2026-08-16T08:36:22.606572+00:00",
+      "thumbnail_path": "media/thumbnails/ed7dbd2e-3869-41f2-a1c1-a48e09cffdf0.jpg"
     },
     {
       "id": "dcd4b5fc-ce89-49fa-b5a4-e4162a67cddd",
@@ -213,7 +235,8 @@
       "video_path": "media/videos/f2a1d156-7b65-4645-b8cf-80530b659c52.mp4",
       "aspect": 0.565187,
       "mind_index": 22,
-      "created_at": "2026-08-16T08:48:07.466103+00:00"
+      "created_at": "2026-08-16T08:48:07.466103+00:00",
+      "thumbnail_path": "media/thumbnails/f2a1d156-7b65-4645-b8cf-80530b659c52.jpg"
     },
     {
       "id": "c3f61f47-bf7d-402d-bd66-d9d1c16c9ee5",
@@ -222,7 +245,8 @@
       "video_path": "media/videos/ce91efc0-f07b-44ed-81ea-f49f6b29ab1a.mp4",
       "aspect": 0.565187,
       "mind_index": 23,
-      "created_at": "2026-08-16T08:52:53.736161+00:00"
+      "created_at": "2026-08-16T08:52:53.736161+00:00",
+      "thumbnail_path": "media/thumbnails/ce91efc0-f07b-44ed-81ea-f49f6b29ab1a.jpg"
     },
     {
       "id": "c298034b-6e3b-4f83-bb47-9279d0ebf321",
@@ -231,7 +255,8 @@
       "video_path": "media/videos/83a78de8-0d2b-4d80-8397-e0e74a096926.mp4",
       "aspect": 0.850012,
       "mind_index": 24,
-      "created_at": "2026-08-16T08:55:55.632582+00:00"
+      "created_at": "2026-08-16T08:55:55.632582+00:00",
+      "thumbnail_path": "media/thumbnails/83a78de8-0d2b-4d80-8397-e0e74a096926.jpg"
     },
     {
       "id": "34008506-7820-4321-b628-ecc2a2ceb588",
@@ -240,7 +265,8 @@
       "video_path": "media/videos/7175fcc5-cb58-4bae-9efc-b3b763ec3109.mp4",
       "aspect": 0.850012,
       "mind_index": 25,
-      "created_at": "2026-08-16T08:58:36.830946+00:00"
+      "created_at": "2026-08-16T08:58:36.830946+00:00",
+      "thumbnail_path": "media/thumbnails/7175fcc5-cb58-4bae-9efc-b3b763ec3109.jpg"
     },
     {
       "id": "4d92151b-23a6-46d8-824b-4d15592bd707",
@@ -249,7 +275,8 @@
       "video_path": "media/videos/7adf6dee-04e7-4af3-90ab-8ffb23d95ed2.mp4",
       "aspect": 0.565057,
       "mind_index": 26,
-      "created_at": "2026-08-16T08:59:14.074067+00:00"
+      "created_at": "2026-08-16T08:59:14.074067+00:00",
+      "thumbnail_path": "media/thumbnails/7adf6dee-04e7-4af3-90ab-8ffb23d95ed2.jpg"
     },
     {
       "id": "d4b79588-2bd7-44d7-acdb-4732ba4a3bee",
@@ -258,7 +285,8 @@
       "video_path": "media/videos/a3db8f56-dc43-4286-a45f-f9de4860471f.mp4",
       "aspect": 1.42048,
       "mind_index": 27,
-      "created_at": "2026-08-16T09:13:00.869229+00:00"
+      "created_at": "2026-08-16T09:13:00.869229+00:00",
+      "thumbnail_path": "media/thumbnails/a3db8f56-dc43-4286-a45f-f9de4860471f.jpg"
     },
     {
       "id": "389fdd4d-f3ea-4dee-8918-e1ff1720239b",
@@ -267,7 +295,8 @@
       "video_path": "media/videos/e90a2951-8f52-4d36-b31c-f48198480e7a.mp4",
       "aspect": 0.627918,
       "mind_index": 28,
-      "created_at": "2026-08-16T09:13:47.781235+00:00"
+      "created_at": "2026-08-16T09:13:47.781235+00:00",
+      "thumbnail_path": "media/thumbnails/e90a2951-8f52-4d36-b31c-f48198480e7a.jpg"
     },
     {
       "id": "56276993-9f1a-4c6e-99bd-f30b6ae60570",
@@ -276,7 +305,8 @@
       "video_path": "media/videos/7ac88cf0-714b-4682-85b7-7b9df2a2074b.mp4",
       "aspect": 0.849815,
       "mind_index": 29,
-      "created_at": "2026-08-16T09:14:15.283832+00:00"
+      "created_at": "2026-08-16T09:14:15.283832+00:00",
+      "thumbnail_path": "media/thumbnails/7ac88cf0-714b-4682-85b7-7b9df2a2074b.jpg"
     },
     {
       "id": "9640ad9e-ad80-4c43-bf10-5e5f8ca0c7d5",
@@ -285,7 +315,8 @@
       "video_path": "media/videos/50f226e6-e10f-49f1-a23a-2a9bf6d7055b.mp3",
       "aspect": 0.667183,
       "mind_index": 30,
-      "created_at": "2026-08-16T09:14:33.860932+00:00"
+      "created_at": "2026-08-16T09:14:33.860932+00:00",
+      "thumbnail_path": "media/thumbnails/50f226e6-e10f-49f1-a23a-2a9bf6d7055b.jpg"
     },
     {
       "id": "e5bebabb-bca7-4f81-ada3-f91acb7b8e21",
@@ -294,7 +325,8 @@
       "video_path": "media/videos/55bc5894-db3c-45cd-a621-eb750708df72.mp3",
       "aspect": 0.667183,
       "mind_index": 31,
-      "created_at": "2026-08-16T09:14:50.73206+00:00"
+      "created_at": "2026-08-16T09:14:50.73206+00:00",
+      "thumbnail_path": "media/thumbnails/55bc5894-db3c-45cd-a621-eb750708df72.jpg"
     },
     {
       "id": "686f5074-7cb3-4b8b-bda4-4c6bc600a5a1",
@@ -303,7 +335,8 @@
       "video_path": "media/videos/a0acab8d-09bc-4392-8e34-af8c99b2e560.mp3",
       "aspect": 0.667183,
       "mind_index": 32,
-      "created_at": "2026-08-16T09:15:05.99016+00:00"
+      "created_at": "2026-08-16T09:15:05.99016+00:00",
+      "thumbnail_path": "media/thumbnails/a0acab8d-09bc-4392-8e34-af8c99b2e560.jpg"
     },
     {
       "id": "3eaf0936-6897-4d83-95f7-f4b95f0138be",
@@ -312,7 +345,8 @@
       "video_path": "media/videos/19a8fb1c-8c15-4db7-9f94-225d699fc8da.mp3",
       "aspect": 0.667183,
       "mind_index": 33,
-      "created_at": "2026-08-16T09:15:22.916714+00:00"
+      "created_at": "2026-08-16T09:15:22.916714+00:00",
+      "thumbnail_path": "media/thumbnails/19a8fb1c-8c15-4db7-9f94-225d699fc8da.jpg"
     },
     {
       "id": "309e8949-4eeb-454c-a638-278fa01e265c",
@@ -321,7 +355,8 @@
       "video_path": "media/videos/05ef53d6-ea38-4f6f-810f-a165fca7dcd5.mp4",
       "aspect": 1,
       "mind_index": 34,
-      "created_at": "2026-08-16T10:06:46.314729+00:00"
+      "created_at": "2026-08-16T10:06:46.314729+00:00",
+      "thumbnail_path": "media/thumbnails/05ef53d6-ea38-4f6f-810f-a165fca7dcd5.jpg"
     },
     {
       "id": "52992550-ee9d-4a90-af25-f70dd3f7ce64",
@@ -330,7 +365,8 @@
       "video_path": "media/videos/afe43921-4ce2-4823-b95c-096cf72eef16.mp4",
       "aspect": 1,
       "mind_index": 35,
-      "created_at": "2026-08-16T10:09:53.154993+00:00"
+      "created_at": "2026-08-16T10:09:53.154993+00:00",
+      "thumbnail_path": "media/thumbnails/afe43921-4ce2-4823-b95c-096cf72eef16.jpg"
     },
     {
       "id": "841d109f-2c99-419d-8075-d0d9aac7e2a2",
@@ -339,7 +375,8 @@
       "video_path": "media/videos/d7e4dc4f-993c-40db-99d1-377ca24ce5a6.mp4",
       "aspect": 1,
       "mind_index": 36,
-      "created_at": "2026-08-16T10:12:36.791068+00:00"
+      "created_at": "2026-08-16T10:12:36.791068+00:00",
+      "thumbnail_path": "media/thumbnails/d7e4dc4f-993c-40db-99d1-377ca24ce5a6.jpg"
     },
     {
       "id": "b3e49c84-9862-40aa-9a15-d6e5493a675b",
@@ -348,7 +385,8 @@
       "video_path": "media/videos/ba132161-4ae3-42c4-adf7-9b49b522a42e.mp4",
       "aspect": 1,
       "mind_index": 37,
-      "created_at": "2026-08-16T10:16:10.10148+00:00"
+      "created_at": "2026-08-16T10:16:10.10148+00:00",
+      "thumbnail_path": "media/thumbnails/ba132161-4ae3-42c4-adf7-9b49b522a42e.jpg"
     },
     {
       "id": "63e171b1-4f71-4202-8e55-ed97b103c7ba",
@@ -357,7 +395,8 @@
       "video_path": "media/videos/b76df032-e76d-4767-8c1a-64f9c83a2af1.mp4",
       "aspect": 1,
       "mind_index": 38,
-      "created_at": "2026-08-16T10:19:21.571556+00:00"
+      "created_at": "2026-08-16T10:19:21.571556+00:00",
+      "thumbnail_path": "media/thumbnails/b76df032-e76d-4767-8c1a-64f9c83a2af1.jpg"
     },
     {
       "id": "369cc3e1-aadc-4893-a345-12d441885ee4",
@@ -366,7 +405,8 @@
       "video_path": "media/videos/c73be526-8205-4953-9efb-efab85b282bd.mp4",
       "aspect": 1,
       "mind_index": 39,
-      "created_at": "2026-08-16T10:22:30.580979+00:00"
+      "created_at": "2026-08-16T10:22:30.580979+00:00",
+      "thumbnail_path": "media/thumbnails/c73be526-8205-4953-9efb-efab85b282bd.jpg"
     },
     {
       "id": "7303a8e0-d6c5-4c78-acb7-ac4c99eed947",
@@ -375,7 +415,8 @@
       "video_path": "media/videos/f245919e-2698-44eb-8406-c0dc7460add9.mp4",
       "aspect": 0.850012,
       "mind_index": 40,
-      "created_at": "2026-08-16T10:26:43.864074+00:00"
+      "created_at": "2026-08-16T10:26:43.864074+00:00",
+      "thumbnail_path": "media/thumbnails/f245919e-2698-44eb-8406-c0dc7460add9.jpg"
     },
     {
       "id": "932956e5-d01a-4422-9ccb-b92469da27b2",
@@ -384,7 +425,8 @@
       "video_path": "media/videos/fde41ed4-ba0d-454a-b3a4-1ba9974b1607.mp4",
       "aspect": 1,
       "mind_index": 41,
-      "created_at": "2026-08-16T10:27:38.814444+00:00"
+      "created_at": "2026-08-16T10:27:38.814444+00:00",
+      "thumbnail_path": "media/thumbnails/fde41ed4-ba0d-454a-b3a4-1ba9974b1607.jpg"
     },
     {
       "id": "e02a0eef-9bbc-4926-9cb4-d2ae4f8f7c42",
@@ -393,7 +435,8 @@
       "video_path": "media/videos/220b6dfc-cc3b-4037-a576-53f3691bdf97.mp4",
       "aspect": 1,
       "mind_index": 42,
-      "created_at": "2026-08-16T10:27:58.578119+00:00"
+      "created_at": "2026-08-16T10:27:58.578119+00:00",
+      "thumbnail_path": "media/thumbnails/220b6dfc-cc3b-4037-a576-53f3691bdf97.jpg"
     },
     {
       "id": "150a88ae-e175-4a9e-8cf6-ecbe6a471d4a",
@@ -402,7 +445,8 @@
       "video_path": "media/videos/66a4337d-b5f8-456d-a357-aac5726b534f.mp3",
       "aspect": 0.329773,
       "mind_index": 43,
-      "created_at": "2026-08-16T10:33:54.897489+00:00"
+      "created_at": "2026-08-16T10:33:54.897489+00:00",
+      "thumbnail_path": "media/thumbnails/66a4337d-b5f8-456d-a357-aac5726b534f.jpg"
     },
     {
       "id": "aae6bdf3-d3af-41c4-85c9-ed9f8dd3e44e",
@@ -411,7 +455,8 @@
       "video_path": "media/videos/687047fa-0908-4a1d-b3ee-0376fea4b69a.mp3",
       "aspect": 0.330214,
       "mind_index": 44,
-      "created_at": "2026-08-16T10:34:13.043485+00:00"
+      "created_at": "2026-08-16T10:34:13.043485+00:00",
+      "thumbnail_path": "media/thumbnails/687047fa-0908-4a1d-b3ee-0376fea4b69a.jpg"
     },
     {
       "id": "49d61a5e-23e4-4540-84ac-27e0c3edd8c9",
@@ -420,7 +465,8 @@
       "video_path": "media/videos/b2476b47-eea2-4450-b778-1bfec103fc94.mp3",
       "aspect": 0.330656,
       "mind_index": 45,
-      "created_at": "2026-08-16T10:35:02.420321+00:00"
+      "created_at": "2026-08-16T10:35:02.420321+00:00",
+      "thumbnail_path": "media/thumbnails/b2476b47-eea2-4450-b778-1bfec103fc94.jpg"
     },
     {
       "id": "63546b5d-5e41-4723-9934-ec7fee60d3dd",
@@ -429,7 +475,8 @@
       "video_path": "media/videos/dae6a071-2f73-4d20-9c5d-324db0173ba4.mp3",
       "aspect": 0.418568,
       "mind_index": 46,
-      "created_at": "2026-08-16T10:38:47.072383+00:00"
+      "created_at": "2026-08-16T10:38:47.072383+00:00",
+      "thumbnail_path": "media/thumbnails/dae6a071-2f73-4d20-9c5d-324db0173ba4.jpg"
     },
     {
       "id": "ca78f64b-2579-4672-92a4-8526cdd88ef8",
@@ -438,7 +485,8 @@
       "video_path": "media/videos/3333e6db-3ea0-4fa6-84b9-be51705818e7.mp3",
       "aspect": 0.409019,
       "mind_index": 47,
-      "created_at": "2026-08-16T10:39:01.853182+00:00"
+      "created_at": "2026-08-16T10:39:01.853182+00:00",
+      "thumbnail_path": "media/thumbnails/3333e6db-3ea0-4fa6-84b9-be51705818e7.jpg"
     },
     {
       "id": "7b7af3d6-c5fa-469e-888c-9678a40629da",
@@ -447,7 +495,8 @@
       "video_path": "media/videos/5e14006c-756e-4b11-939c-d59c0fb2c37b.mp4",
       "aspect": 1.06962,
       "mind_index": 48,
-      "created_at": "2026-08-16T10:40:55.312652+00:00"
+      "created_at": "2026-08-16T10:40:55.312652+00:00",
+      "thumbnail_path": "media/thumbnails/5e14006c-756e-4b11-939c-d59c0fb2c37b.jpg"
     },
     {
       "id": "7ae7fa7c-1bd8-4ed1-8fcf-3cb4717a4ce9",
@@ -456,7 +505,8 @@
       "video_path": "media/videos/cea7128c-f49e-4b54-8b57-938594366bd2.mp4",
       "aspect": 0.558794,
       "mind_index": 49,
-      "created_at": "2026-08-16T10:43:05.965301+00:00"
+      "created_at": "2026-08-16T10:43:05.965301+00:00",
+      "thumbnail_path": "media/thumbnails/cea7128c-f49e-4b54-8b57-938594366bd2.jpg"
     },
     {
       "id": "54d140ff-b8e0-4b60-ae58-e5af8c846eeb",
@@ -465,7 +515,8 @@
       "video_path": "media/videos/22bdfc9f-881b-4415-b17f-6cf1cc85e280.mp4",
       "aspect": 0.326568,
       "mind_index": 50,
-      "created_at": "2026-08-16T10:44:10.711354+00:00"
+      "created_at": "2026-08-16T10:44:10.711354+00:00",
+      "thumbnail_path": "media/thumbnails/22bdfc9f-881b-4415-b17f-6cf1cc85e280.jpg"
     }
   ]
 }

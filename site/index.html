@@ -40,7 +40,7 @@
     }
     #sound-btn {
       top: calc(12px + env(safe-area-inset-top));
-      right: 12px; width: 44px; height: 44px; padding: 10px; line-height: 1;
+      left: 12px; width: 44px; height: 44px; padding: 10px; line-height: 1;
     }
     #close-btn {
       top: calc(12px + env(safe-area-inset-top)); left: 12px;
@@ -53,7 +53,7 @@
     }
     body.started #sound-btn { display: block; }
     body.tracking:not(.pinned) #pin-btn { display: block; }
-    body.pinned #close-btn { display: block; }
+    body.pinned #close-btn { display: block; left:64px; }
 
     /* 계속 보기: 보던 영상을 전체화면으로 승격 */
     #pinned { position: fixed; inset: 0; z-index: 30; display: none; background: #000; }
@@ -84,20 +84,23 @@
     }
     .ctl svg {display:block;width:24px;height:24px;}
     .ctl:focus-visible {outline:2px solid #fff;outline-offset:3px;}
-    body.started #library-btn, body.pinned #library-btn {display:none;}
     #splash .hint {max-width:100%;white-space:pre-line;}
-    #selected-label {color:#b6d8ff;font-size:14px;max-width:85vw;margin:0;}
-    #selected-label:empty {display:none;}
-    dialog {border:0;border-radius:18px;width:min(640px,calc(100vw - 48px));max-height:80dvh;padding:20px;color:#111;box-shadow:0 12px 50px #0008;}
+    dialog {box-sizing:border-box;border:0;border-radius:18px;width:min(760px,calc(100vw - 24px));max-height:84dvh;padding:18px;color:#111;box-shadow:0 12px 50px #0008;}
     dialog::backdrop {background:#000b;}
-    .library-top {display:flex;align-items:center;justify-content:space-between;gap:12px;}
-    dialog button {border:1px solid #bbb;border-radius:10px;padding:10px;background:#f3f5f7;cursor:pointer;font-size:14px;}
-    #figure-search {box-sizing:border-box;width:100%;padding:13px;border:1px solid #aaa;border-radius:10px;font-size:16px;}
-    .figure-row {display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:14px 0;border-bottom:1px solid #ddd;}
-    .figure-row strong {font-size:14px;overflow-wrap:anywhere;}
-    #library-player video {width:100%;max-height:42dvh;background:#000;}
-    #library-player audio {width:100%;}
-    @media(max-width:440px){.figure-row{grid-template-columns:1fr 1fr}.figure-row strong{grid-column:1/-1}}
+    .library-top {display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;background:#fff;z-index:3;padding-bottom:12px;}
+    .library-top h2 {margin:0;font-size:22px;}
+    dialog button {cursor:pointer;}
+    #library-close {display:grid;place-items:center;width:44px;height:44px;padding:10px;border:0;background:transparent;color:#111;border-radius:50%;}
+    #library-close svg {display:block;width:24px;height:24px;}
+    #figure-list {display:grid;grid-template-columns:1fr;gap:18px;}
+    .figure-card {position:relative;min-width:0;border:1px solid #e1e3e6;border-radius:12px;overflow:hidden;background:#fff;}
+    .figure-visual {position:relative;width:100%;background:#f5f5f5;}
+    .figure-poster {display:block;position:relative;width:100%;border:0;padding:0;border-radius:0;background:transparent;}
+    .figure-visual img {display:block;width:100%;height:auto;}
+    .figure-visual video {display:block;width:100%;height:auto;object-fit:contain;background:#000;}
+    .figure-visual audio {position:absolute;left:0;bottom:0;width:100%;height:44px;}
+    .figure-status {position:absolute;top:6px;left:6px;right:6px;margin:0;padding:7px;border-radius:7px;background:#fffffff0;font-size:12px;line-height:1.4;pointer-events:none;}
+    .figure-status:empty {display:none;}
     .a-enter-vr, .a-enter-ar { display: none !important; }
   </style>
 </head>
@@ -106,7 +109,6 @@
 
   <div id="splash">
     <div class="hint" id="splash-hint">불러오는 중…</div>
-    <p id="selected-label"></p>
     <button id="start-btn" style="display:none">카메라 시작</button>
   </div>
 
@@ -118,10 +120,8 @@
     </svg>
   </button>
   <dialog id="figure-library" aria-labelledby="library-title">
-    <div class="library-top"><h2 id="library-title">갤러리</h2><button id="library-close" aria-label="도표 목록 닫기">닫기</button></div>
-    <p>원하는 도표만 인식하거나 카메라 없이 영상·음원을 바로 재생하세요.</p>
-    <label for="figure-search">도표 이름·목록 번호 검색</label><input id="figure-search" type="search" placeholder="도표 이름 또는 목록 번호" />
-    <div id="library-player"></div><p id="library-status" role="status"></p><div id="figure-list"></div>
+    <div class="library-top"><h2 id="library-title">갤러리</h2><button id="library-close" aria-label="갤러리 닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div>
+    <div id="figure-list"></div>
   </dialog>
   <div id="scene-root"></div>
   <div id="camera-prompt">카메라로 사진을 인식시키세요</div>
@@ -218,18 +218,8 @@
     const S = window.ARState;
     S.mediaLoader = createMediaLoader({isProtected: media => !!media.dataset.onTarget || S.pinned === media || S.manualMedia === media});
     window.addEventListener('pagehide', () => S.mediaLoader.clear());
-    let selected = new URL(location.href).searchParams.get('figure');
-    const selectFigure = row => {
-      const url = new URL(location.href); if(row)url.searchParams.set('figure',row.id);else url.searchParams.delete('figure');
-      if (document.body.classList.contains('started')) { location.assign(url.href); return; }
-      selected = row?.id || null; history.replaceState(null,'',url); showSelected();
-    };
-    function showSelected() {
-      const row = rows.find(row=>row.id===selected);
-      $("#selected-label").textContent = row ? `선택한 도표만 인식: ${row.name || '도표 '+(rows.indexOf(row)+1)}` : '';
-    }
-    showSelected();
-    mountLibrary({rows,assetUrl:publicUrl,loader:S.mediaLoader,state:S,onSelect:selectFigure});
+    const selected = new URL(location.href).searchParams.get('figure');
+    mountLibrary({rows,assetUrl:publicUrl,loader:S.mediaLoader,state:S});
 
     // 재생 파일이 음악인지 영상인지는 확장자로 판별한다 (DB 변경 불필요)
     const isAudio = (path) => /\.(mp3|m4a|aac|wav|ogg|oga|opus|flac|weba)$/i.test(path);
@@ -281,7 +271,7 @@
     // (자동 해제가 사용자의 선택을 덮어쓰지 않도록 항상 이 상태를 따른다)
     const setSound = (on) => {
       S.soundOn = on;
-      for (const v of document.querySelectorAll("a-assets video, a-assets audio, #pinned video, #pinned audio")) v.muted = !on;
+      for (const v of document.querySelectorAll("a-assets video, a-assets audio, #pinned video, #pinned audio, #figure-list video, #figure-list audio")) v.muted = !on;
       $("#sound-btn").setAttribute('aria-label', on ? '소리 끄기' : '소리 켜기');
       $("#sound-btn").setAttribute('aria-pressed', String(on));
       $("[data-sound-waves]").toggleAttribute('hidden', !on);

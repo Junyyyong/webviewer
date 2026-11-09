@@ -9,6 +9,7 @@ const manifest={version:1,mind_path:'media/targets.mind',targets:[row]};
 test('rejects unsafe asset paths and inconsistent recognition indices',()=>{
  for(const p of ['https://evil/a','media/../config.js','media//x','media/./x','media/a".mp4']) assert.throws(()=>safePath(p));
  assert.equal(validateManifest(manifest),manifest);
+ assert.throws(()=>validateManifest({...manifest,targets:[{...row,thumbnail_path:'https://example.test/image.jpg'}]}));
  assert.throws(()=>validateManifest({...manifest,targets:[row,{...row,id:'two'}]}));
  assert.throws(()=>validateManifest({...manifest,targets:[{...row,mind_index:2}]}));
  assert.throws(()=>validateManifest({...manifest,mind_path:null}));
