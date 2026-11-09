@@ -267,7 +267,7 @@
         const profile = $("#media-profile").value, audioOnly = isAudio(vidFile.name);
         if (profile !== 'original') {
           let shouldConvert;
-          if (audioOnly) shouldConvert = !/\.(mp3|m4a|aac)$/i.test(vidFile.name) || vidFile.size > 22*MIB;
+          if (audioOnly) shouldConvert = !/\.(mp3|m4a|aac)$/i.test(vidFile.name) || vidFile.size > 25*MIB;
           else {
             const probe = await loadMedia(vidFile);
             try {

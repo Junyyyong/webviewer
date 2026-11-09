@@ -7,7 +7,7 @@ export function videoPlan({width,height,duration,size,force=false},profile='tabl
   if (![width,height,duration].every(n=>Number.isFinite(n)&&n>0)) throw new Error('영상 크기 또는 재생 시간을 확인할 수 없습니다. MP4 파일로 저장한 뒤 다시 시도하세요.');
   const p=PROFILES[profile]||PROFILES.tablet;
   const baseScale=Math.min(1,p.longEdge/Math.max(width,height),p.shortEdge/Math.min(width,height));
-  const needsConversion=force||baseScale<0.999||size>22*MIB;
+  const needsConversion=force||baseScale<0.999||size>25*MIB;
   const budget=(22*MIB*8/duration-p.audioBps)*0.94;
   const maxBps=Math.max(1,Math.min(p.videoBps,Math.floor(budget)));
   const reduced=needsConversion&&profile==='tablet'&&maxBps<2_000_000;
