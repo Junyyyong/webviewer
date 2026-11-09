@@ -71,16 +71,17 @@ export class ContentStore {
     let manifest;
     try {
       const f=await this.api(`contents/site/content/manifest.json?ref=${this.head}`);
+      this.manifestSha=f.sha;
       manifest=validateManifest(JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(f.content.replace(/\s/g,'')),c=>c.charCodeAt(0)))));
     } catch(e) { this.token=''; throw new Error(`저장소의 이전된 자료를 읽을 수 없습니다. 먼저 코드와 자료를 배포해야 합니다. ${e.message}`); }
     this.rows=structuredClone(manifest.targets); this.mindPath=manifest.mind_path;
     const draft=await localDraft(this.key);
     if(draft) {
-      if(draft.head!==this.head) throw new Error('다른 발행 이후의 임시 자료가 이 브라우저에 남아 있습니다. 먼저 임시 자료 지우기를 누른 뒤 로그인하세요.');
+      if(draft.head!==this.head && (!draft.manifestSha || draft.manifestSha!==this.manifestSha)) throw new Error('다른 발행 이후의 임시 자료가 이 브라우저에 남아 있습니다. 먼저 임시 자료 지우기를 누른 뒤 로그인하세요.');
       this.rows=draft.rows; this.files=new Map(draft.files); this.dirty=true;
     }
   }
-  async save() { await localDraft(this.key,{head:this.head,rows:this.rows,files:[...this.files]}); this.dirty=true; }
+  async save() { await localDraft(this.key,{head:this.head,manifestSha:this.manifestSha,rows:this.rows,files:[...this.files]}); this.dirty=true; }
   async discard() { await localDraft(this.key,undefined,true); }
   logout() { this.token=''; for(const u of this.urls.values()) URL.revokeObjectURL(u); this.urls.clear(); }
   url(path) {
@@ -100,7 +101,11 @@ export class ContentStore {
   async publish(buffer, progress=()=>{}) {
     const mind=new Blob(buffer ? [buffer] : []); if(this.rows.length && !mind.size || mind.size>400*1024*1024) throw new Error('인식 데이터가 비어 있거나 너무 큽니다.');
     const latest=await this.api(`git/ref/heads/${this.branch}`);
-    if(latest.object.sha!==this.head) throw new Error('다른 변경이 먼저 저장되었습니다. 임시 자료를 보존한 상태로 중단했습니다. 새 변경과 병합 후 다시 진행하세요.');
+    const baseHead=latest.object.sha;
+    if(baseHead!==this.head) {
+      const current=this.manifestSha ? await this.api(`contents/site/content/manifest.json?ref=${baseHead}`) : null;
+      if(!current || current.sha!==this.manifestSha) throw new Error('다른 변경이 먼저 저장되었습니다. 임시 자료를 보존한 상태로 중단했습니다. 새 변경과 병합 후 다시 진행하세요.');
+    }
     const id=crypto.randomUUID(), parts=[], pending=new Map(this.files);
     const chunkSize=20*1024*1024;
     for(let offset=0,i=0;offset<mind.size;offset+=chunkSize,i++) {
@@ -109,19 +114,20 @@ export class ContentStore {
     const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await mind.arrayBuffer())),b=>b.toString(16).padStart(2,'0')).join('');
     const manifest=validateManifest({version:1,published_at:new Date().toISOString(),mind_path:null,mind_parts:parts,mind_sha256:hash,targets:this.rows.map((r,i)=>({...r,mind_index:i}))});
     pending.set('content/manifest.json',new Blob([JSON.stringify(manifest,null,2)]));
-    const tree=[]; let done=0;
+    const tree=[]; let done=0, manifestSha;
     for(const [path,blob] of pending) {
       safePath(path); if(blob.size>MAX_FILE) throw new Error('파일 크기 제한 초과');
       progress(`파일 저장 중 ${++done}/${pending.size}`);
       const b=await this.api('git/blobs',{content:await encode(blob),encoding:'base64'});
+      if(path==='content/manifest.json') manifestSha=b.sha;
       tree.push({path:`site/${path}`,mode:'100644',type:'blob',sha:b.sha});
     }
-    const commit=await this.api(`git/commits/${this.head}`);
+    const commit=await this.api(`git/commits/${baseHead}`);
     const nextTree=await this.api('git/trees',{base_tree:commit.tree.sha,tree});
-    const next=await this.api('git/commits',{message:`Publish ${manifest.targets.length} AR figures`,tree:nextTree.sha,parents:[this.head]});
+    const next=await this.api('git/commits',{message:`Publish ${manifest.targets.length} AR figures`,tree:nextTree.sha,parents:[baseHead]});
     // Non-force update rejects concurrent changes. Assets and manifest become visible together.
     await this.api(`git/refs/heads/${this.branch}`,{sha:next.sha,force:false},'PATCH');
-    this.head=next.sha; this.rows=manifest.targets; this.mindPath=null; this.files.clear(); this.dirty=false;
+    this.head=next.sha; this.manifestSha=manifestSha; this.rows=manifest.targets; this.mindPath=null; this.files.clear(); this.dirty=false;
     for(const u of this.urls.values()) URL.revokeObjectURL(u); this.urls.clear();
     try { await this.discard(); } catch { progress('발행은 완료됐으나 이 브라우저의 임시 자료 정리에 실패했습니다.'); }
     return `https://github.com/${this.owner}/${this.repo}/commit/${next.sha}`;

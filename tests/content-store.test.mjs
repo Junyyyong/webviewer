@@ -60,3 +60,20 @@ test('failed Supabase import leaves existing draft unchanged',async()=>{
  try {await assert.rejects(store.importSupabase({url:'https://source.supabase.co',key:'public'}),/파일 읽기 실패/);assert.equal(store.rows.length,1);assert.equal(store.files.size,1);}
  finally{globalThis.fetch=savedFetch;}
 });
+test('preserves newer code commits when published content is unchanged',async()=>{
+ const {store,calls}=harness();const originalApi=store.api;store.manifestSha='same-content';
+ store.api=async(path,body,method)=>{
+  if(path==='git/ref/heads/main') return {object:{sha:'code-update'}};
+  if(path==='contents/site/content/manifest.json?ref=code-update') return {sha:'same-content'};
+  if(path==='git/commits/code-update') return {tree:{sha:'new-base'}};
+  return originalApi(path,body,method);
+ };
+ await store.publish(new Uint8Array([1]));
+ assert.deepEqual(calls.find(c=>c.path==='git/commits').body.parents,['code-update']);
+ assert.equal(calls.find(c=>c.path==='git/trees').body.base_tree,'new-base');
+});
+test('refuses to overwrite a newer content publication',async()=>{
+ const {store}=harness();store.manifestSha='old-content';
+ store.api=async path=>path.startsWith('git/ref/')?{object:{sha:'new-head'}}:{sha:'new-content'};
+ await assert.rejects(store.publish(new Uint8Array([1])),/다른 변경/);
+});

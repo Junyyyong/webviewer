@@ -98,6 +98,7 @@
   </div>
 
   <div id="scene-root"></div>
+  <div id="media-status" role="status" style="position:fixed;bottom:100px;left:16px;right:16px;text-align:center;color:white;background:#000b;border-radius:12px;padding:12px;z-index:30;display:none;pointer-events:none"></div>
 
   <div id="pinned"><div id="pinned-art">🎵</div></div>
   <button id="sound-btn" class="ctl" aria-label="소리 켜기/끄기">🔊</button>
@@ -127,7 +128,7 @@
           media.addEventListener("loadedmetadata", fit); // 아직이면 로드될 때
         }
 
-        this.el.addEventListener("targetFound", () => {
+        this.el.addEventListener("targetFound", async () => {
           const v = this.data.video;
           v.dataset.onTarget = "1";
           document.body.classList.add("tracking");
@@ -135,7 +136,15 @@
             v.tagName === "AUDIO" ? "계속 듣기" : "계속 보기";
           // '계속 보기'로 띄운 영상은 카메라가 흔들려도 AR이 건드리지 않는다
           if (v === window.ARState.pinned) return;
-          v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
+          const status = document.getElementById('media-status');
+          try {
+            status.textContent = '영상·음원을 불러오는 중…'; status.style.display = '';
+            await window.ARState.mediaLoader.ensure(v);
+            if (!v.dataset.onTarget && v !== window.ARState.pinned) return;
+            status.style.display = 'none';
+            v.muted = !window.ARState.soundOn;
+            v.play().catch(() => { v.muted = true; v.play().catch(() => { status.textContent = '화면을 터치하면 재생됩니다.'; status.style.display = ''; }); });
+          } catch(e) { if(v.dataset.onTarget || v === window.ARState.pinned) {status.textContent=e.message;status.style.display='';} }
         });
         this.el.addEventListener("targetLost", () => {
           const v = this.data.video;
@@ -143,6 +152,7 @@
           document.body.classList.remove("tracking");
           if (v === window.ARState.pinned) return;
           v.pause();
+          if (!window.ARState.pinned) document.getElementById("media-status").style.display="none";
         });
       },
     });
@@ -158,6 +168,7 @@
     };
     const escAttr = (s) => String(s).replace(/"/g, "&quot;");
 
+    import { createMediaLoader } from './media-loader.js';
     import { readManifest, assetUrl, loadMindUrl } from './content-store.js';
     let manifest;
     try { manifest = await readManifest(); }
@@ -193,8 +204,8 @@
       // preload는 metadata까지만. auto로 두면 도판 수만큼(예: 18개) 영상을
       // 한꺼번에 내려받아 폰이 버티지 못한다. 실제 파일은 인식된 뒤에 받는다.
       return isAudio(r.video_path)
-        ? `<audio id="vid${i}" src="${src}" preload="metadata" loop crossorigin="anonymous"></audio>`
-        : `<video id="vid${i}" src="${src}" preload="metadata" loop playsinline webkit-playsinline crossorigin="anonymous"></video>`;
+        ? `<audio id="vid${i}" data-src="${src}" preload="none" loop crossorigin="anonymous"></audio>`
+        : `<video id="vid${i}" data-src="${src}" preload="none" loop playsinline webkit-playsinline crossorigin="anonymous"></video>`;
     }).join("\n      ");
 
     const entities = rows.map((r, i) => {
@@ -211,7 +222,7 @@
     <a-scene mindar-image="imageTargetSrc: ${escAttr(mindUrl)}; autoStart: true; uiLoading: no; uiError: no; uiScanning: no; warmupTolerance: 2; missTolerance: 12"
              color-space="sRGB" renderer="colorManagement: true" embedded
              vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-      <a-assets>
+      <a-assets timeout="1">
       ${assets}
       </a-assets>
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -219,6 +230,8 @@
     </a-scene>`;
 
     const S = window.ARState;
+    S.mediaLoader = createMediaLoader({isProtected: media => !!media.dataset.onTarget || S.pinned === media});
+    window.addEventListener('pagehide', () => S.mediaLoader.clear());
 
     // ── 소리: 상태를 한 곳에서 관리한다.
     // (자동 해제가 사용자의 선택을 덮어쓰지 않도록 항상 이 상태를 따른다)
@@ -237,7 +250,7 @@
       const v = document.querySelector("a-assets [data-on-target]");
       if (v && S.soundOn && v.muted) {
         v.muted = false;
-        v.play().catch(() => {});
+        v.play().then(() => $("#media-status").style.display="none").catch(() => {});
       }
     };
 
